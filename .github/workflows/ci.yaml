@@ -28,8 +28,8 @@ jobs:
           fail_ci_if_error: false
 
   rolling-release-image:
-    # Only on master.
-    if: startsWith(github.ref, 'refs/heads/master')
+    # Only on main branch.
+    if: startsWith(github.ref, 'refs/heads/main')
     env:
       TAG_IMAGE_LATEST: "true"
       PROD_IMAGE_NAME: ${GITHUB_REPOSITORY}
