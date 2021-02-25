@@ -78,7 +78,6 @@ func (factory) GetPublicKey(ctx context.Context, data []byte) (model.PublicKey, 
 	sdata := string(data)
 	for _, f := range publicKeyParsers {
 		recipient, err := f(sdata)
-		fmt.Println(err)
 		// If no error, we have our public key.
 		if err == nil {
 			return PublicKey{
