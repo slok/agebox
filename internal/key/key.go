@@ -11,3 +11,5 @@ type Factory interface {
 	GetPublicKey(ctx context.Context, data []byte) (model.PublicKey, error)
 	GetPrivateKey(ctx context.Context, data []byte) (model.PrivateKey, error)
 }
+
+//go:generate mockery --case underscore --output keymock --outpkg keymock --name Factory
