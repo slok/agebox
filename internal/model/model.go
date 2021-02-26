@@ -16,3 +16,11 @@ type PrivateKey interface {
 	Key
 	IsPrivate()
 }
+
+// Secret represents a secret. If []byte data is nil, it means that the
+// data has not been initialized or missing (different from being empty).
+type Secret struct {
+	ID            string
+	EncryptedData []byte
+	DecryptedData []byte
+}
