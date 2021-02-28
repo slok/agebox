@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // Key represents a security key.
 type Key interface {
 	Data() []byte
@@ -23,4 +25,11 @@ type Secret struct {
 	ID            string
 	EncryptedData []byte
 	DecryptedData []byte
+}
+
+// SecretRegistry represents the registry of secrets that is used to track
+// information about the actions made on secrets.
+type SecretRegistry struct {
+	EncryptedSecrets map[string]struct{}
+	UpdatedAt        time.Time
 }
