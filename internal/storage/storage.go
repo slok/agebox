@@ -16,3 +16,9 @@ type KeyRepository interface {
 	ListPublicKeys(ctx context.Context) (*PublicKeyList, error)
 	GetPrivateKey(ctx context.Context) (model.PrivateKey, error)
 }
+
+// SecretRepository knows how to deal with stored secrets.
+type SecretRepository interface {
+	GetDecryptedSecret(ctx context.Context, id string) (*model.Secret, error)
+	SaveEncryptedSecret(ctx context.Context, secret model.Secret) error
+}
