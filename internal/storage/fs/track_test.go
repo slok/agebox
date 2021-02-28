@@ -109,7 +109,15 @@ func TestSaveSecretRegistry(t *testing.T) {
 				UpdatedAt: t0,
 			},
 			mock: func(mfm *fsmock.FileManager) {
-				expAgeboxRegJSON := `{"version":"1","file_ids":["a/f3","f1","f2"],"updated_at":"2021-02-28T08:51:52.185757405Z"}`
+				expAgeboxRegJSON := `{
+  "version": "1",
+  "file_ids": [
+    "a/f3",
+    "f1",
+    "f2"
+  ],
+  "updated_at": "2021-02-28T08:51:52.185757405Z"
+}`
 				mfm.On("WriteFile", mock.Anything, "ageboxreg.json", []byte(expAgeboxRegJSON)).Once().Return(nil)
 			},
 		},

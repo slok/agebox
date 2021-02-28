@@ -110,7 +110,7 @@ func (t trackRepository) SaveSecretRegistry(ctx context.Context, reg model.Secre
 		FileIDs:   ids,
 		UpdatedAt: reg.UpdatedAt,
 	}
-	data, err := json.Marshal(sr)
+	data, err := json.MarshalIndent(sr, "", "  ")
 	if err != nil {
 		return fmt.Errorf("could not marshal to JSON: %w", err)
 	}
