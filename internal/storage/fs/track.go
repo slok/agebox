@@ -9,7 +9,6 @@ import (
 
 	"github.com/slok/agebox/internal/log"
 	"github.com/slok/agebox/internal/model"
-	"github.com/slok/agebox/internal/storage"
 )
 
 // TrackRepositoryConfig is the configuration of the tracking repository.
@@ -36,20 +35,21 @@ func (c *TrackRepositoryConfig) defaults() error {
 	return nil
 }
 
-type trackRepository struct {
+// TrackRepository tracks the repository encrypted/decrypted secrets using the File system.
+type TrackRepository struct {
 	filePath    string
 	fileManager FileManager
 	logger      log.Logger
 }
 
 // NewTrackRepository returns a TrackRepository based on a file system.
-func NewTrackRepository(config TrackRepositoryConfig) (storage.TrackRepository, error) {
+func NewTrackRepository(config TrackRepositoryConfig) (*TrackRepository, error) {
 	err := config.defaults()
 	if err != nil {
 		return nil, fmt.Errorf("invalid configuration: %w", err)
 	}
 
-	return trackRepository{
+	return &TrackRepository{
 		filePath:    config.FilePath,
 		fileManager: config.FileManager,
 		logger:      config.Logger,
@@ -64,7 +64,8 @@ type secretRegistryJSONV1 struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (t trackRepository) GetSecretRegistry(ctx context.Context) (*model.SecretRegistry, error) {
+// GetSecretRegistry gets the secret registry form the file system.
+func (t TrackRepository) GetSecretRegistry(ctx context.Context) (*model.SecretRegistry, error) {
 	data, err := t.fileManager.ReadFile(ctx, t.filePath)
 	if err != nil {
 		return nil, fmt.Errorf("could not get secret tracking file %q: %w", t.filePath, err)
@@ -92,7 +93,8 @@ func (t trackRepository) GetSecretRegistry(ctx context.Context) (*model.SecretRe
 	}, nil
 }
 
-func (t trackRepository) SaveSecretRegistry(ctx context.Context, reg model.SecretRegistry) error {
+// SaveSecretRegistry saves the secret registry from the file system.
+func (t TrackRepository) SaveSecretRegistry(ctx context.Context, reg model.SecretRegistry) error {
 	// TODO(slok): Safer way of replacing file (e.g: https://github.com/google/renameio).
 	if reg.UpdatedAt.IsZero() {
 		reg.UpdatedAt = time.Now().UTC()
