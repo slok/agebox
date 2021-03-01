@@ -5,31 +5,75 @@ import (
 	"fmt"
 	"io"
 	"os"
-)
 
-// Setup application commands.
-var commands = map[string]Command{
-	InitCommand.Name: InitCommand,
-}
+	"github.com/sirupsen/logrus"
+	"gopkg.in/alecthomas/kingpin.v2"
+
+	"github.com/slok/agebox/cmd/agebox/commands"
+	"github.com/slok/agebox/internal/log"
+	loglogrus "github.com/slok/agebox/internal/log/logrus"
+)
 
 // Version is the application version.
 var Version = "dev"
 
 // Run runs the main application.
 func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
-	// Load command configuration.
-	config, err := NewCmdConfig(args[1:], commands)
+	app := kingpin.New("agebox", "Age based repo file encrypt helper.")
+	app.Version(Version)
+	app.DefaultEnvars()
+	config := commands.NewRootConfig(app)
+
+	// Setup commands (registers flags).
+	initCmd := commands.NewInitCommand(app)
+
+	cmds := map[string]commands.Command{
+		initCmd.Name(): initCmd,
+	}
+
+	// Parse commandline.
+	cmdName, err := app.Parse(args[1:])
 	if err != nil {
 		return fmt.Errorf("invalid command configuration: %w", err)
 	}
 
+	// Set up global dependencies.
+	config.Stdin = stdin
+	config.Stdout = stdout
+	config.Stderr = stderr
+	config.Logger = getLogger(*config, stderr)
+
 	// Execute command.
-	err = commands[config.Command].Run(ctx, stdin, stdout, stderr, *config)
+	err = cmds[cmdName].Run(ctx, *config)
 	if err != nil {
-		return fmt.Errorf("%q command failed: %w", config.Command, err)
+		return fmt.Errorf("%q command failed: %w", cmdName, err)
 	}
 
 	return nil
+}
+
+// getLogger returns the application logger.
+func getLogger(config commands.RootConfig, stderr io.Writer) log.Logger {
+	if config.NoLog {
+		return log.Noop
+	}
+
+	// If not logger disabled use logrus logger.
+	logrusLog := logrus.New()
+	logrusLog.Out = stderr // By default logger goes to stderr (so it can split stdout prints).
+	logrusLogEntry := logrus.NewEntry(logrusLog)
+
+	if config.Debug {
+		logrusLogEntry.Logger.SetLevel(logrus.DebugLevel)
+	}
+
+	logger := loglogrus.NewLogrus(logrusLogEntry).WithValues(log.Kv{
+		"version": Version,
+	})
+
+	logger.Debugf("debug level is enabled") // Will log only when debug enabled.
+
+	return logger
 }
 
 func main() {
