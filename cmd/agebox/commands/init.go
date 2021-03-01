@@ -45,5 +45,4 @@ func (i initCommand) Run(ctx context.Context, config RootConfig) error {
 	}
 
 	return nil
-
 }

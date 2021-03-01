@@ -10,31 +10,31 @@ import (
 	"github.com/stretchr/testify/require"
 
 	boxinit "github.com/slok/agebox/internal/box/init"
-	"github.com/slok/agebox/internal/box/init/initmock"
 	"github.com/slok/agebox/internal/model"
+	"github.com/slok/agebox/internal/storage/storagemock"
 )
 
 func TestInitBox(t *testing.T) {
 	tests := map[string]struct {
-		mock   func(mtr *initmock.TrackRepository)
+		mock   func(mtr *storagemock.TrackRepository)
 		expErr bool
 	}{
 		"A uninitialized box should be initialized correctly.": {
-			mock: func(mtr *initmock.TrackRepository) {
+			mock: func(mtr *storagemock.TrackRepository) {
 				mtr.On("GetSecretRegistry", mock.Anything).Once().Return(nil, fmt.Errorf("something"))
 				mtr.On("SaveSecretRegistry", mock.Anything, model.SecretRegistry{}).Once().Return(nil)
 			},
 		},
 
 		"An already initialized box should fail.": {
-			mock: func(mtr *initmock.TrackRepository) {
+			mock: func(mtr *storagemock.TrackRepository) {
 				mtr.On("GetSecretRegistry", mock.Anything).Once().Return(nil, nil)
 			},
 			expErr: true,
 		},
 
 		"Having an error saving the registry should fail.": {
-			mock: func(mtr *initmock.TrackRepository) {
+			mock: func(mtr *storagemock.TrackRepository) {
 				mtr.On("GetSecretRegistry", mock.Anything).Once().Return(nil, fmt.Errorf("something"))
 				mtr.On("SaveSecretRegistry", mock.Anything, model.SecretRegistry{}).Once().Return(fmt.Errorf("something"))
 			},
@@ -48,7 +48,7 @@ func TestInitBox(t *testing.T) {
 			require := require.New(t)
 
 			// Mocks.
-			mtr := &initmock.TrackRepository{}
+			mtr := &storagemock.TrackRepository{}
 			test.mock(mtr)
 
 			// Prepare and execute.
