@@ -6,19 +6,12 @@ import (
 
 	"github.com/slok/agebox/internal/log"
 	"github.com/slok/agebox/internal/model"
+	"github.com/slok/agebox/internal/storage"
 )
-
-// TrackRepository is the repository used to track the secret registry.
-type TrackRepository interface {
-	GetSecretRegistry(ctx context.Context) (*model.SecretRegistry, error)
-	SaveSecretRegistry(ctx context.Context, reg model.SecretRegistry) error
-}
-
-//go:generate mockery --case underscore --output initmock --outpkg initmock --name TrackRepository
 
 // ServiceConfig is the configuration of Service
 type ServiceConfig struct {
-	TrackRepo TrackRepository
+	TrackRepo storage.TrackRepository
 	Logger    log.Logger
 }
 
@@ -39,7 +32,7 @@ func (c *ServiceConfig) defaults() error {
 // This service will initialize the repository/box by creating
 // a new secret tracking file.
 type Service struct {
-	trackRepo TrackRepository
+	trackRepo storage.TrackRepository
 	logger    log.Logger
 }
 
