@@ -22,7 +22,7 @@ func NewEncryptCommand(app *kingpin.Application) Command {
 	c := &encryptCommand{}
 	cmd := app.Command("encrypt", "Encrypts and tracks any number of files.")
 	cmd.Flag("public-keys", "Path to public keys.").Default("keys").Short('p').StringVar(&c.PubKeysPath)
-	cmd.Arg("files", "Files to encrypt").StringsVar(&c.Files)
+	cmd.Arg("files", "Files to encrypt.").StringsVar(&c.Files)
 
 	return c
 }
@@ -70,7 +70,7 @@ func (e encryptCommand) Run(ctx context.Context, config RootConfig) error {
 		SecretIDs: e.Files,
 	})
 	if err != nil {
-		return fmt.Errorf("could not encrypt box: %w", err)
+		return fmt.Errorf("could not encrypt: %w", err)
 	}
 
 	return nil

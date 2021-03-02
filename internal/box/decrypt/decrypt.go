@@ -1,4 +1,4 @@
-package encrypt
+package decrypt
 
 import (
 	"context"
@@ -14,7 +14,6 @@ import (
 type ServiceConfig struct {
 	KeyRepo    storage.KeyRepository
 	SecretRepo storage.SecretRepository
-	TrackRepo  storage.TrackRepository
 	Encrypter  secret.Encrypter
 	Logger     log.Logger
 }
@@ -28,10 +27,6 @@ func (c *ServiceConfig) defaults() error {
 		return fmt.Errorf("secret repository is required")
 	}
 
-	if c.TrackRepo == nil {
-		return fmt.Errorf("secret track repository is required")
-	}
-
 	if c.Encrypter == nil {
 		return fmt.Errorf("encrypter is required")
 	}
@@ -39,17 +34,16 @@ func (c *ServiceConfig) defaults() error {
 	if c.Logger == nil {
 		c.Logger = log.Noop
 	}
-	c.Logger = c.Logger.WithValues(log.Kv{"svc": "box.encrypt.Service"})
+	c.Logger = c.Logger.WithValues(log.Kv{"svc": "box.decrypt.Service"})
 
 	return nil
 }
 
-// Service is the application service for the box encrypting logic.
-// The service knows  how to encrypt and discover files to encrypt.
+// Service is the application service for the box decrypting logic.
+// The service knows how to decrypt and discover files to decrypt.
 type Service struct {
 	keyRepo    storage.KeyRepository
 	secretRepo storage.SecretRepository
-	trackRepo  storage.TrackRepository
 	encrypter  secret.Encrypter
 	logger     log.Logger
 }
@@ -64,35 +58,28 @@ func NewService(config ServiceConfig) (*Service, error) {
 	return &Service{
 		keyRepo:    config.KeyRepo,
 		secretRepo: config.SecretRepo,
-		trackRepo:  config.TrackRepo,
 		encrypter:  config.Encrypter,
 		logger:     config.Logger,
 	}, nil
 }
 
-// EncryptBoxRequest is the request to encrypt secrets.
-type EncryptBoxRequest struct {
+// DecryptBoxRequest is the request to decrypt secrets.
+type DecryptBoxRequest struct {
 	SecretIDs []string
 }
 
-// EncryptBox will encrypt secrets..
-func (s Service) EncryptBox(ctx context.Context, r EncryptBoxRequest) error {
+// DecryptBox will decrypt secrets.
+func (s Service) DecryptBox(ctx context.Context, r DecryptBoxRequest) error {
 	if len(r.SecretIDs) == 0 {
 		return fmt.Errorf("0 secrets provided")
 	}
 
 	// TODO(slok): Validate secretIDs.
 
-	// Load secret tracks.
-	reg, err := s.trackRepo.GetSecretRegistry(ctx)
+	// Load key.
+	privKey, err := s.keyRepo.GetPrivateKey(ctx)
 	if err != nil {
-		return fmt.Errorf("could not get secrets tracking registry: %w", err)
-	}
-
-	// Load keys.
-	pubKeys, err := s.keyRepo.ListPublicKeys(ctx)
-	if err != nil {
-		return fmt.Errorf("could not get public keys: %w", err)
+		return fmt.Errorf("could not get private key: %w", err)
 	}
 
 	// Encrypt secrets.
@@ -101,46 +88,39 @@ func (s Service) EncryptBox(ctx context.Context, r EncryptBoxRequest) error {
 	for _, secretID := range r.SecretIDs {
 		logger := s.logger.WithValues(log.Kv{"secret-id": secretID})
 
-		err := s.procesSecret(ctx, pubKeys.Items, secretID)
+		err := s.procesSecret(ctx, privKey, secretID)
 		if err != nil {
 			// We will try our best, if error, log and continue with next secrets.
-			logger.Errorf("Secret not ecrypted: %s", err)
+			logger.Errorf("Secret not decrypted: %s", err)
 			errored = true
 			continue
 		}
 
-		// Secret encrypted, add to the tracked secrets.
-		logger.Infof("Secret encrypted")
-		reg.EncryptedSecrets[secretID] = struct{}{}
-	}
-
-	// Track the correctly encrypted secrets.
-	err = s.trackRepo.SaveSecretRegistry(ctx, *reg)
-	if err != nil {
-		return fmt.Errorf("could not register encrypted keys: %w", err)
+		// Secret decrypted.
+		logger.Infof("Secret decrypted")
 	}
 
 	if errored {
-		return fmt.Errorf("could not encrypt all the provided secrets")
+		return fmt.Errorf("could not decrypt all the provided secrets")
 	}
 
 	return nil
 }
 
-func (s Service) procesSecret(ctx context.Context, keys []model.PublicKey, secretID string) error {
-	secret, err := s.secretRepo.GetDecryptedSecret(ctx, secretID)
+func (s Service) procesSecret(ctx context.Context, key model.PrivateKey, secretID string) error {
+	secret, err := s.secretRepo.GetEncryptedSecret(ctx, secretID)
 	if err != nil {
 		return fmt.Errorf("could not retrieve secret: %w", err)
 	}
 
-	secret, err = s.encrypter.Encrypt(ctx, *secret, keys)
+	secret, err = s.encrypter.Decrypt(ctx, *secret, key)
 	if err != nil {
-		return fmt.Errorf("could not encrypt secret: %w", err)
+		return fmt.Errorf("could not decrypt secret: %w", err)
 	}
 
-	err = s.secretRepo.SaveEncryptedSecret(ctx, *secret)
+	err = s.secretRepo.SaveDecryptedSecret(ctx, *secret)
 	if err != nil {
-		return fmt.Errorf("could not stor encrypted secret: %w", err)
+		return fmt.Errorf("could not store decrypted secret: %w", err)
 	}
 
 	return nil
