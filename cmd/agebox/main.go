@@ -27,10 +27,12 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 	// Setup commands (registers flags).
 	initCmd := commands.NewInitCommand(app)
 	encryptCmd := commands.NewEncryptCommand(app)
+	decryptCmd := commands.NewDecryptCommand(app)
 
 	cmds := map[string]commands.Command{
 		initCmd.Name():    initCmd,
 		encryptCmd.Name(): encryptCmd,
+		decryptCmd.Name(): decryptCmd,
 	}
 
 	// Parse commandline.
