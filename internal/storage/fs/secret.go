@@ -84,12 +84,29 @@ func (s secretRepository) GetDecryptedSecret(ctx context.Context, id string) (*m
 	// Read file.
 	data, err := s.fileManager.ReadFile(ctx, path)
 	if err != nil {
-		return nil, fmt.Errorf("could not read unencrypted %q file: %w", id, err)
+		return nil, fmt.Errorf("could not read decrypted %q file: %w", id, err)
 	}
 
 	return &model.Secret{
 		ID:            path,
 		DecryptedData: data,
+	}, nil
+}
+
+func (s secretRepository) GetEncryptedSecret(ctx context.Context, id string) (*model.Secret, error) {
+	// Sanitize path.
+	decPath := strings.TrimSuffix(id, s.fileExtension)
+	encPath := decPath + s.fileExtension
+
+	// Read file.
+	data, err := s.fileManager.ReadFile(ctx, encPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not read encrypted %q file: %w", id, err)
+	}
+
+	return &model.Secret{
+		ID:            decPath,
+		EncryptedData: data,
 	}, nil
 }
 
@@ -111,6 +128,31 @@ func (s secretRepository) SaveEncryptedSecret(ctx context.Context, secret model.
 	// Delete decrypted file.
 	// TODO(slok): Check if is missing already.
 	err = s.fileManager.DeleteFile(ctx, decPath)
+	if err != nil {
+		return fmt.Errorf("could not delete decrypted file: %w", err)
+	}
+
+	return nil
+}
+
+func (s secretRepository) SaveDecryptedSecret(ctx context.Context, secret model.Secret) error {
+	if secret.DecryptedData == nil {
+		return fmt.Errorf("no decrypted data on secret")
+	}
+
+	// Sanitize paths.
+	decPath := strings.TrimSuffix(secret.ID, s.fileExtension)
+	encPath := decPath + s.fileExtension
+
+	// Create decrypted file.
+	err := s.fileManager.WriteFile(ctx, decPath, secret.DecryptedData)
+	if err != nil {
+		return fmt.Errorf("could not write decrypted file: %w", err)
+	}
+
+	// Delete encrypted file.
+	// TODO(slok): Check if is missing already.
+	err = s.fileManager.DeleteFile(ctx, encPath)
 	if err != nil {
 		return fmt.Errorf("could not delete decrypted file: %w", err)
 	}

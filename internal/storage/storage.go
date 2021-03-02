@@ -22,7 +22,9 @@ type KeyRepository interface {
 // SecretRepository knows how to deal with stored secrets.
 type SecretRepository interface {
 	GetDecryptedSecret(ctx context.Context, id string) (*model.Secret, error)
+	GetEncryptedSecret(ctx context.Context, id string) (*model.Secret, error)
 	SaveEncryptedSecret(ctx context.Context, secret model.Secret) error
+	SaveDecryptedSecret(ctx context.Context, secret model.Secret) error
 }
 
 //go:generate mockery --case underscore --output storagemock --outpkg storagemock --name SecretRepository
