@@ -37,6 +37,43 @@ func (_m *SecretRepository) GetDecryptedSecret(ctx context.Context, id string) (
 	return r0, r1
 }
 
+// GetEncryptedSecret provides a mock function with given fields: ctx, id
+func (_m *SecretRepository) GetEncryptedSecret(ctx context.Context, id string) (*model.Secret, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 *model.Secret
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Secret); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Secret)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SaveDecryptedSecret provides a mock function with given fields: ctx, secret
+func (_m *SecretRepository) SaveDecryptedSecret(ctx context.Context, secret model.Secret) error {
+	ret := _m.Called(ctx, secret)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, model.Secret) error); ok {
+		r0 = rf(ctx, secret)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SaveEncryptedSecret provides a mock function with given fields: ctx, secret
 func (_m *SecretRepository) SaveEncryptedSecret(ctx context.Context, secret model.Secret) error {
 	ret := _m.Called(ctx, secret)
