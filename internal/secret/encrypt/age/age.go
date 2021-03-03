@@ -11,7 +11,7 @@ import (
 	internalerrors "github.com/slok/agebox/internal/errors"
 	keyage "github.com/slok/agebox/internal/key/age"
 	"github.com/slok/agebox/internal/model"
-	"github.com/slok/agebox/internal/secret"
+	"github.com/slok/agebox/internal/secret/encrypt"
 )
 
 type encrypter bool
@@ -20,7 +20,7 @@ type encrypter bool
 // This encrypter is coupled to age keys, so it should be used with age based keys.
 const Encrypter = encrypter(true)
 
-var _ secret.Encrypter = Encrypter
+var _ encrypt.Encrypter = Encrypter
 
 func (encrypter) Encrypt(ctx context.Context, secret model.Secret, keys []model.PublicKey) (*model.Secret, error) {
 	if secret.DecryptedData == nil {

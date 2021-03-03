@@ -8,7 +8,7 @@ import (
 
 	boxdecrypt "github.com/slok/agebox/internal/box/decrypt"
 	keyage "github.com/slok/agebox/internal/key/age"
-	secretage "github.com/slok/agebox/internal/secret/age"
+	encryptage "github.com/slok/agebox/internal/secret/encrypt/age"
 	storagefs "github.com/slok/agebox/internal/storage/fs"
 )
 
@@ -70,13 +70,15 @@ func (d decryptCommand) Run(ctx context.Context, config RootConfig) error {
 		for k := range tracked.EncryptedSecrets {
 			d.Files = append(d.Files, k)
 		}
+
+		logger.Infof("Using %d tracked files", len(d.Files))
 	}
 
 	// Create the application service.
 	appSvc, err := boxdecrypt.NewService(boxdecrypt.ServiceConfig{
 		KeyRepo:    keyRepo,
 		SecretRepo: secretRepo,
-		Encrypter:  secretage.Encrypter,
+		Encrypter:  encryptage.Encrypter,
 		Logger:     logger,
 	})
 	if err != nil {

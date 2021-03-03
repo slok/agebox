@@ -1,4 +1,4 @@
-package secret
+package encrypt
 
 import (
 	"context"
@@ -12,4 +12,4 @@ type Encrypter interface {
 	Decrypt(ctx context.Context, secret model.Secret, key model.PrivateKey) (*model.Secret, error)
 }
 
-//go:generate mockery --case underscore --output secretmock --outpkg secretmock --name Encrypter
+//go:generate mockery --case underscore --output encryptmock --outpkg encryptmock --name Encrypter

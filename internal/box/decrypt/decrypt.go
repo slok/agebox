@@ -6,7 +6,7 @@ import (
 
 	"github.com/slok/agebox/internal/log"
 	"github.com/slok/agebox/internal/model"
-	"github.com/slok/agebox/internal/secret"
+	"github.com/slok/agebox/internal/secret/encrypt"
 	"github.com/slok/agebox/internal/storage"
 )
 
@@ -14,7 +14,7 @@ import (
 type ServiceConfig struct {
 	KeyRepo    storage.KeyRepository
 	SecretRepo storage.SecretRepository
-	Encrypter  secret.Encrypter
+	Encrypter  encrypt.Encrypter
 	Logger     log.Logger
 }
 
@@ -44,7 +44,7 @@ func (c *ServiceConfig) defaults() error {
 type Service struct {
 	keyRepo    storage.KeyRepository
 	secretRepo storage.SecretRepository
-	encrypter  secret.Encrypter
+	encrypter  encrypt.Encrypter
 	logger     log.Logger
 }
 
