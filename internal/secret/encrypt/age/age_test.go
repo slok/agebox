@@ -9,7 +9,7 @@ import (
 
 	keyage "github.com/slok/agebox/internal/key/age"
 	"github.com/slok/agebox/internal/model"
-	secretage "github.com/slok/agebox/internal/secret/age"
+	encryptage "github.com/slok/agebox/internal/secret/encrypt/age"
 )
 
 var (
@@ -85,7 +85,7 @@ func TestEncrypter(t *testing.T) {
 			require := require.New(t)
 
 			// Test encrypt.
-			tmpSecret, err := secretage.Encrypter.Encrypt(context.TODO(), test.secret, test.publicKeys)
+			tmpSecret, err := encryptage.Encrypter.Encrypt(context.TODO(), test.secret, test.publicKeys)
 			if test.expEncryptErr {
 				require.Error(err)
 				return
@@ -97,7 +97,7 @@ func TestEncrypter(t *testing.T) {
 			secret := model.Secret{
 				EncryptedData: tmpSecret.EncryptedData,
 			}
-			gotSecret, err := secretage.Encrypter.Decrypt(context.TODO(), secret, test.privateKey)
+			gotSecret, err := encryptage.Encrypter.Decrypt(context.TODO(), secret, test.privateKey)
 			if test.expDecryptErr {
 				require.Error(err)
 				return

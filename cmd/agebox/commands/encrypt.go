@@ -8,7 +8,7 @@ import (
 
 	boxencrypt "github.com/slok/agebox/internal/box/encrypt"
 	keyage "github.com/slok/agebox/internal/key/age"
-	secretage "github.com/slok/agebox/internal/secret/age"
+	encryptage "github.com/slok/agebox/internal/secret/encrypt/age"
 	storagefs "github.com/slok/agebox/internal/storage/fs"
 )
 
@@ -71,6 +71,8 @@ func (e encryptCommand) Run(ctx context.Context, config RootConfig) error {
 		for k := range tracked.EncryptedSecrets {
 			e.Files = append(e.Files, k)
 		}
+
+		logger.Infof("Using %d tracked files", len(e.Files))
 	}
 
 	// Create the application service.
@@ -78,7 +80,7 @@ func (e encryptCommand) Run(ctx context.Context, config RootConfig) error {
 		TrackRepo:  trackRepo,
 		KeyRepo:    keyRepo,
 		SecretRepo: secretRepo,
-		Encrypter:  secretage.Encrypter,
+		Encrypter:  encryptage.Encrypter,
 		Logger:     logger,
 	})
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 
 	"github.com/slok/agebox/internal/box/encrypt"
 	"github.com/slok/agebox/internal/model"
-	"github.com/slok/agebox/internal/secret/secretmock"
+	"github.com/slok/agebox/internal/secret/encrypt/encryptmock"
 	"github.com/slok/agebox/internal/storage"
 	"github.com/slok/agebox/internal/storage/storagemock"
 )
@@ -21,7 +21,7 @@ func TestEncryptBox(t *testing.T) {
 		mkr *storagemock.KeyRepository
 		msr *storagemock.SecretRepository
 		mtr *storagemock.TrackRepository
-		me  *secretmock.Encrypter
+		me  *encryptmock.Encrypter
 	}
 
 	tests := map[string]struct {
@@ -218,7 +218,7 @@ func TestEncryptBox(t *testing.T) {
 				mkr: &storagemock.KeyRepository{},
 				msr: &storagemock.SecretRepository{},
 				mtr: &storagemock.TrackRepository{},
-				me:  &secretmock.Encrypter{},
+				me:  &encryptmock.Encrypter{},
 			}
 			test.mock(m)
 
