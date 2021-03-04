@@ -3,6 +3,7 @@ package fs_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -209,18 +210,30 @@ func TestSaveEncryptedSecret(t *testing.T) {
 		mock   func(mfm *fsmock.FileManager)
 		expErr bool
 	}{
-		"Saving an encrypted secret should store the encrypted and remove the decrypted (default extension).": {
+		"Saving an encrypted secret should store the encrypted and remove the encrypted (default extension).": {
 			secret: model.Secret{
 				ID:            "secrets/app1/secret1.yaml",
 				EncryptedData: []byte("enc1"),
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml.agebox", []byte("enc1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, nil)
 				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil)
 			},
 		},
 
-		"Saving an encrypted secret should store the encrypted and remove the decrypted (custom extension).": {
+		"Saving an encrypted secret should store the encrypted and remove the encrypted (aleady removed).": {
+			secret: model.Secret{
+				ID:            "secrets/app1/secret1.yaml",
+				EncryptedData: []byte("enc1"),
+			},
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml.agebox", []byte("enc1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, os.ErrNotExist)
+			},
+		},
+
+		"Saving an encrypted secret should store the encrypted and remove the encrypted (custom extension).": {
 			config: fs.SecretRepositoryConfig{
 				FileExtension: "test",
 			},
@@ -230,11 +243,12 @@ func TestSaveEncryptedSecret(t *testing.T) {
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml.test", []byte("enc1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, nil)
 				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil)
 			},
 		},
 
-		"Saving an encrypted secret should store the encrypted and remove the decrypted (custom extension with dot).": {
+		"Saving an encrypted secret should store the encrypted and remove the encrypted (custom extension with dot).": {
 			config: fs.SecretRepositoryConfig{
 				FileExtension: ".test",
 			},
@@ -244,6 +258,7 @@ func TestSaveEncryptedSecret(t *testing.T) {
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml.test", []byte("enc1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, nil)
 				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil)
 			},
 		},
@@ -268,6 +283,18 @@ func TestSaveEncryptedSecret(t *testing.T) {
 			expErr: true,
 		},
 
+		"Having an error while checking the file exists, should fail.": {
+			secret: model.Secret{
+				ID:            "secrets/app1/secret1.yaml",
+				EncryptedData: []byte("enc1"),
+			},
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml.agebox", []byte("enc1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, fmt.Errorf("something"))
+			},
+			expErr: true,
+		},
+
 		"Having an error while deleting the encrypted data, should fail.": {
 			secret: model.Secret{
 				ID:            "secrets/app1/secret1.yaml",
@@ -275,6 +302,7 @@ func TestSaveEncryptedSecret(t *testing.T) {
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml.agebox", []byte("enc1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, nil)
 				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(fmt.Errorf("something"))
 			},
 			expErr: true,
@@ -287,6 +315,7 @@ func TestSaveEncryptedSecret(t *testing.T) {
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml.agebox", []byte("enc1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, nil)
 				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil)
 			},
 		},
@@ -326,18 +355,30 @@ func TestSaveDencryptedSecret(t *testing.T) {
 		mock   func(mfm *fsmock.FileManager)
 		expErr bool
 	}{
-		"Saving an decrypted secret should store the decrypted and remove the decrypted (default extension).": {
+		"Saving an decrypted secret should store the decrypted and remove the encrypted (default extension).": {
 			secret: model.Secret{
 				ID:            "secrets/app1/secret1.yaml",
 				DecryptedData: []byte("dec1"),
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml", []byte("dec1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, nil)
 				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil)
 			},
 		},
 
-		"Saving an decrypted secret should store the decrypted and remove the decrypted (custom extension).": {
+		"Saving an decrypted secret should store the decrypted and remove the encrypted (aleady removed).": {
+			secret: model.Secret{
+				ID:            "secrets/app1/secret1.yaml",
+				DecryptedData: []byte("dec1"),
+			},
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml", []byte("dec1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, os.ErrNotExist)
+			},
+		},
+
+		"Saving an decrypted secret should store the decrypted and remove the encrypted (custom extension).": {
 			config: fs.SecretRepositoryConfig{
 				FileExtension: "test",
 			},
@@ -347,11 +388,12 @@ func TestSaveDencryptedSecret(t *testing.T) {
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml", []byte("dec1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.test").Once().Return(nil, nil)
 				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml.test").Once().Return(nil)
 			},
 		},
 
-		"Saving an decrypted secret should store the decrypted and remove the decrypted (custom extension with dot).": {
+		"Saving an decrypted secret should store the decrypted and remove the encrypted (custom extension with dot).": {
 			config: fs.SecretRepositoryConfig{
 				FileExtension: ".test",
 			},
@@ -361,6 +403,7 @@ func TestSaveDencryptedSecret(t *testing.T) {
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml", []byte("dec1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.test").Once().Return(nil, nil)
 				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml.test").Once().Return(nil)
 			},
 		},
@@ -385,6 +428,18 @@ func TestSaveDencryptedSecret(t *testing.T) {
 			expErr: true,
 		},
 
+		"Having an error while checking the deleted file exists, should fail.": {
+			secret: model.Secret{
+				ID:            "secrets/app1/secret1.yaml",
+				DecryptedData: []byte("dec1"),
+			},
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml", []byte("dec1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, fmt.Errorf("something"))
+			},
+			expErr: true,
+		},
+
 		"Having an error while deleting the decrypted data, should fail.": {
 			secret: model.Secret{
 				ID:            "secrets/app1/secret1.yaml",
@@ -392,6 +447,7 @@ func TestSaveDencryptedSecret(t *testing.T) {
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml", []byte("dec1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, nil)
 				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(fmt.Errorf("something"))
 			},
 			expErr: true,
@@ -404,6 +460,7 @@ func TestSaveDencryptedSecret(t *testing.T) {
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("WriteFile", mock.Anything, "secrets/app1/secret1.yaml", []byte("dec1")).Once().Return(nil)
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, nil)
 				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil)
 			},
 		},
@@ -429,6 +486,142 @@ func TestSaveDencryptedSecret(t *testing.T) {
 				assert.Error(err)
 			} else {
 				assert.NoError(err)
+			}
+
+			mfm.AssertExpectations(t)
+		})
+	}
+}
+
+func TestExistsDecryptedSecret(t *testing.T) {
+	tests := map[string]struct {
+		config    fs.SecretRepositoryConfig
+		id        string
+		mock      func(mfm *fsmock.FileManager)
+		expErr    bool
+		expExists bool
+	}{
+		"Check the existance of a decrypted secret that exists should return that exists.": {
+			id: "secrets/app1/secret1.yaml",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, nil)
+			},
+			expExists: true,
+		},
+
+		"Check the existance of a decrypted secret that exists should return that exists (Sanitized path).": {
+			id: "secrets/app1/secret1.yaml.agebox",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, nil)
+			},
+			expExists: true,
+		},
+
+		"Check the existance of a decrypted secret that is missing should return that doesn't exist.": {
+			id: "secrets/app1/secret1.yaml",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, os.ErrNotExist)
+			},
+			expExists: false,
+		},
+
+		"Having an error while checking a file exists should fail.": {
+			id: "secrets/app1/secret1.yaml",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, fmt.Errorf("something"))
+			},
+			expErr: true,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+			require := require.New(t)
+
+			// Mock.
+			mfm := &fsmock.FileManager{}
+			test.mock(mfm)
+
+			// Prepare.
+			test.config.FileManager = mfm
+			repo, err := fs.NewSecretRepository(test.config)
+			require.NoError(err)
+
+			gotExists, err := repo.ExistsDecryptedSecret(context.TODO(), test.id)
+
+			if test.expErr {
+				assert.Error(err)
+			} else if assert.NoError(err) {
+				assert.Equal(test.expExists, gotExists)
+			}
+
+			mfm.AssertExpectations(t)
+		})
+	}
+}
+
+func TestExistsEncryptedSecret(t *testing.T) {
+	tests := map[string]struct {
+		config    fs.SecretRepositoryConfig
+		id        string
+		mock      func(mfm *fsmock.FileManager)
+		expErr    bool
+		expExists bool
+	}{
+		"Check the existance of a encrypted secret that exists should return that exists.": {
+			id: "secrets/app1/secret1.yaml.agebox",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, nil)
+			},
+			expExists: true,
+		},
+
+		"Check the existance of a encrypted secret that exists should return that exists (Sanitized path).": {
+			id: "secrets/app1/secret1.yaml",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, nil)
+			},
+			expExists: true,
+		},
+
+		"Check the existance of a encrypted secret that is missing should return that doesn't exist.": {
+			id: "secrets/app1/secret1.yaml.agebox",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, os.ErrNotExist)
+			},
+			expExists: false,
+		},
+
+		"Having an error while checking a file exists should fail.": {
+			id: "secrets/app1/secret1.yaml.agebox",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, fmt.Errorf("something"))
+			},
+			expErr: true,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+			require := require.New(t)
+
+			// Mock.
+			mfm := &fsmock.FileManager{}
+			test.mock(mfm)
+
+			// Prepare.
+			test.config.FileManager = mfm
+			repo, err := fs.NewSecretRepository(test.config)
+			require.NoError(err)
+
+			gotExists, err := repo.ExistsEncryptedSecret(context.TODO(), test.id)
+
+			if test.expErr {
+				assert.Error(err)
+			} else if assert.NoError(err) {
+				assert.Equal(test.expExists, gotExists)
 			}
 
 			mfm.AssertExpectations(t)

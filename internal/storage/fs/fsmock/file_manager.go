@@ -5,6 +5,8 @@ package fsmock
 import (
 	context "context"
 
+	iofs "io/fs"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -37,6 +39,29 @@ func (_m *FileManager) ReadFile(ctx context.Context, path string) ([]byte, error
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, path)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StatFile provides a mock function with given fields: ctx, path
+func (_m *FileManager) StatFile(ctx context.Context, path string) (iofs.FileInfo, error) {
+	ret := _m.Called(ctx, path)
+
+	var r0 iofs.FileInfo
+	if rf, ok := ret.Get(0).(func(context.Context, string) iofs.FileInfo); ok {
+		r0 = rf(ctx, path)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(iofs.FileInfo)
 		}
 	}
 
