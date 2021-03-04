@@ -2,6 +2,7 @@ package fs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -16,6 +17,7 @@ type FileManager interface {
 	ReadFile(ctx context.Context, path string) ([]byte, error)
 	WriteFile(ctx context.Context, path string, data []byte) error
 	DeleteFile(ctx context.Context, path string) error
+	StatFile(ctx context.Context, path string) (os.FileInfo, error)
 }
 
 //go:generate mockery --case underscore --output fsmock --outpkg fsmock --name FileManager
@@ -27,6 +29,9 @@ func (fileManager) WriteFile(ctx context.Context, path string, data []byte) erro
 	return os.WriteFile(path, data, 0644)
 }
 func (fileManager) DeleteFile(_ context.Context, path string) error { return os.Remove(path) }
+func (fileManager) StatFile(ctx context.Context, path string) (os.FileInfo, error) {
+	return os.Stat(path)
+}
 
 const defaultFileManager = fileManager(true)
 
@@ -126,7 +131,13 @@ func (s secretRepository) SaveEncryptedSecret(ctx context.Context, secret model.
 	}
 
 	// Delete decrypted file.
-	// TODO(slok): Check if is missing already.
+	exists, err := s.existsSecret(ctx, decPath)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
 	err = s.fileManager.DeleteFile(ctx, decPath)
 	if err != nil {
 		return fmt.Errorf("could not delete decrypted file: %w", err)
@@ -150,12 +161,39 @@ func (s secretRepository) SaveDecryptedSecret(ctx context.Context, secret model.
 		return fmt.Errorf("could not write decrypted file: %w", err)
 	}
 
-	// Delete encrypted file.
-	// TODO(slok): Check if is missing already.
+	// Delete encrypted file if not missing already.
+	exists, err := s.existsSecret(ctx, encPath)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
+
 	err = s.fileManager.DeleteFile(ctx, encPath)
 	if err != nil {
 		return fmt.Errorf("could not delete decrypted file: %w", err)
 	}
 
 	return nil
+}
+
+func (s secretRepository) ExistsDecryptedSecret(ctx context.Context, id string) (bool, error) {
+	return s.existsSecret(ctx, strings.TrimSuffix(id, s.fileExtension))
+}
+
+func (s secretRepository) ExistsEncryptedSecret(ctx context.Context, id string) (bool, error) {
+	return s.existsSecret(ctx, strings.TrimSuffix(id, s.fileExtension)+s.fileExtension)
+}
+
+func (s secretRepository) existsSecret(ctx context.Context, id string) (bool, error) {
+	_, err := s.fileManager.StatFile(ctx, id)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
 }
