@@ -7,15 +7,17 @@ import (
 	"github.com/slok/agebox/internal/log"
 	"github.com/slok/agebox/internal/model"
 	"github.com/slok/agebox/internal/secret/encrypt"
+	"github.com/slok/agebox/internal/secret/process"
 	"github.com/slok/agebox/internal/storage"
 )
 
 // ServiceConfig is the configuration of Service.
 type ServiceConfig struct {
-	KeyRepo    storage.KeyRepository
-	SecretRepo storage.SecretRepository
-	Encrypter  encrypt.Encrypter
-	Logger     log.Logger
+	KeyRepo           storage.KeyRepository
+	SecretRepo        storage.SecretRepository
+	Encrypter         encrypt.Encrypter
+	SecretIDProcessor process.IDProcessor
+	Logger            log.Logger
 }
 
 func (c *ServiceConfig) defaults() error {
@@ -31,6 +33,10 @@ func (c *ServiceConfig) defaults() error {
 		return fmt.Errorf("encrypter is required")
 	}
 
+	if c.SecretIDProcessor == nil {
+		c.SecretIDProcessor = process.NoopIDProcessor
+	}
+
 	if c.Logger == nil {
 		c.Logger = log.Noop
 	}
@@ -42,10 +48,11 @@ func (c *ServiceConfig) defaults() error {
 // Service is the application service for the box decrypting logic.
 // The service knows how to decrypt and discover files to decrypt.
 type Service struct {
-	keyRepo    storage.KeyRepository
-	secretRepo storage.SecretRepository
-	encrypter  encrypt.Encrypter
-	logger     log.Logger
+	keyRepo           storage.KeyRepository
+	secretRepo        storage.SecretRepository
+	encrypter         encrypt.Encrypter
+	secretIDProcessor process.IDProcessor
+	logger            log.Logger
 }
 
 // NewService returns a new service.
@@ -56,10 +63,11 @@ func NewService(config ServiceConfig) (*Service, error) {
 	}
 
 	return &Service{
-		keyRepo:    config.KeyRepo,
-		secretRepo: config.SecretRepo,
-		encrypter:  config.Encrypter,
-		logger:     config.Logger,
+		keyRepo:           config.KeyRepo,
+		secretRepo:        config.SecretRepo,
+		encrypter:         config.Encrypter,
+		secretIDProcessor: config.SecretIDProcessor,
+		logger:            config.Logger,
 	}, nil
 }
 
@@ -74,7 +82,20 @@ func (s Service) DecryptBox(ctx context.Context, r DecryptBoxRequest) error {
 		return fmt.Errorf("0 secrets provided")
 	}
 
-	// TODO(slok): Validate secretIDs.
+	secretIDs := []string{}
+	for _, secret := range r.SecretIDs {
+		secret, err := s.secretIDProcessor.ProcessID(ctx, secret)
+		if err != nil {
+			return fmt.Errorf("invalid secret %q: %w", secret, err)
+		}
+
+		// Ignore.
+		if secret == "" {
+			continue
+		}
+
+		secretIDs = append(secretIDs, secret)
+	}
 
 	// Load key.
 	privKey, err := s.keyRepo.GetPrivateKey(ctx)
@@ -85,7 +106,7 @@ func (s Service) DecryptBox(ctx context.Context, r DecryptBoxRequest) error {
 	// Encrypt secrets.
 	// TODO(slok): Make it concurrent.
 	errored := false
-	for _, secretID := range r.SecretIDs {
+	for _, secretID := range secretIDs {
 		logger := s.logger.WithValues(log.Kv{"secret-id": secretID})
 
 		err := s.procesSecret(ctx, privKey, secretID)
