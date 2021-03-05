@@ -1,0 +1,146 @@
+package process_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/slok/agebox/internal/secret/process"
+	"github.com/slok/agebox/internal/secret/process/processmock"
+)
+
+func TestIDProcessorChain(t *testing.T) {
+	tests := map[string]struct {
+		processors func() []*processmock.IDProcessor
+		secret     string
+		expSecret  string
+		expErr     bool
+	}{
+		"Without processors the chain should return the same.": {
+			processors: func() []*processmock.IDProcessor {
+				return []*processmock.IDProcessor{}
+			},
+			secret:    "test",
+			expSecret: "test",
+		},
+
+		"All processors should be called with the secret and pass the secret one each other.": {
+			processors: func() []*processmock.IDProcessor {
+				m1 := &processmock.IDProcessor{}
+				m1.On("ProcessID", mock.Anything, "test").Once().Return("test1", nil)
+				m2 := &processmock.IDProcessor{}
+				m2.On("ProcessID", mock.Anything, "test1").Once().Return("test2", nil)
+				m3 := &processmock.IDProcessor{}
+				m3.On("ProcessID", mock.Anything, "test2").Once().Return("test3", nil)
+				return []*processmock.IDProcessor{m1, m2, m3}
+			},
+			secret:    "test",
+			expSecret: "test3",
+		},
+
+		"If any of the chain processor errors it should stop the chain.": {
+			processors: func() []*processmock.IDProcessor {
+				m1 := &processmock.IDProcessor{}
+				m1.On("ProcessID", mock.Anything, "test").Once().Return("test1", nil)
+				m2 := &processmock.IDProcessor{}
+				m2.On("ProcessID", mock.Anything, mock.Anything).Once().Return("", fmt.Errorf("something"))
+				m3 := &processmock.IDProcessor{}
+				return []*processmock.IDProcessor{m1, m2, m3}
+			},
+			secret: "test",
+			expErr: true,
+		},
+
+		"If a processor returns empty it should stop the chain and return empty as if the secret would be ignored.": {
+			processors: func() []*processmock.IDProcessor {
+				m1 := &processmock.IDProcessor{}
+				m1.On("ProcessID", mock.Anything, "test").Once().Return("test1", nil)
+				m2 := &processmock.IDProcessor{}
+				m2.On("ProcessID", mock.Anything, "test1").Once().Return("", nil)
+				m3 := &processmock.IDProcessor{}
+				return []*processmock.IDProcessor{m1, m2, m3}
+			},
+			secret:    "test",
+			expSecret: "",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+
+			// Mocks.
+			mProcessors := test.processors()
+			processors := make([]process.IDProcessor, 0, len(mProcessors))
+			for _, mp := range mProcessors {
+				processors = append(processors, mp)
+			}
+
+			p := process.NewIDProcessorChain(processors...)
+			gotSecret, err := p.ProcessID(context.TODO(), test.secret)
+
+			if test.expErr {
+				assert.Error(err)
+			} else if assert.NoError(err) {
+				assert.Equal(test.expSecret, gotSecret)
+			}
+
+			for _, mp := range mProcessors {
+				mp.AssertExpectations(t)
+			}
+		})
+	}
+}
+
+func TestIgnoreAlreadyProcessed(t *testing.T) {
+	tests := map[string]struct {
+		cache     map[string]struct{}
+		secret    string
+		expSecret string
+		expErr    bool
+	}{
+		"Empty cache and empty secret should return the same empty secret.": {
+			cache:     map[string]struct{}{},
+			secret:    "",
+			expSecret: "",
+		},
+
+		"Cache should be automatically initialialized.": {
+			cache:     nil,
+			secret:    "test",
+			expSecret: "test",
+		},
+
+		"A regular secret not in cache should be a valid processable secret.": {
+			cache:     map[string]struct{}{},
+			secret:    "test",
+			expSecret: "test",
+		},
+
+		"A regular secret in cache should be ignored.": {
+			cache: map[string]struct{}{
+				"test": {},
+			},
+			secret:    "test",
+			expSecret: "",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+
+			p := process.NewIgnoreAlreadyProcessed(test.cache)
+			gotSecret, err := p.ProcessID(context.TODO(), test.secret)
+
+			if test.expErr {
+				assert.Error(err)
+			} else if assert.NoError(err) {
+				assert.Equal(test.expSecret, gotSecret)
+			}
+		})
+	}
+}
