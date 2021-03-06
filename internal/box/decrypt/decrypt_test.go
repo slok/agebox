@@ -12,6 +12,7 @@ import (
 	"github.com/slok/agebox/internal/box/decrypt"
 	"github.com/slok/agebox/internal/model"
 	"github.com/slok/agebox/internal/secret/encrypt/encryptmock"
+	"github.com/slok/agebox/internal/secret/process/processmock"
 	"github.com/slok/agebox/internal/storage/storagemock"
 )
 
@@ -20,6 +21,7 @@ func TestDecryptBox(t *testing.T) {
 		mkr *storagemock.KeyRepository
 		msr *storagemock.SecretRepository
 		me  *encryptmock.Encrypter
+		msp *processmock.IDProcessor
 	}
 
 	tests := map[string]struct {
@@ -33,11 +35,22 @@ func TestDecryptBox(t *testing.T) {
 			expErr: true,
 		},
 
+		"Having an error while processing a secret ID, should fail.": {
+			req: decrypt.DecryptBoxRequest{
+				SecretIDs: []string{"secret1"},
+			},
+			mock: func(m mocks) {
+				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", fmt.Errorf("something"))
+			},
+			expErr: true,
+		},
+
 		"Having an error while retrieving private key, it should fail.": {
 			req: decrypt.DecryptBoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
+				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
 				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, fmt.Errorf("something"))
 			},
 			expErr: true,
@@ -48,6 +61,29 @@ func TestDecryptBox(t *testing.T) {
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
+				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
+				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+
+				// Processed secret.
+				{
+					secret := model.Secret{EncryptedData: []byte("test1")}
+					m.msr.On("GetEncryptedSecret", mock.Anything, "secret1").Once().Return(&secret, nil)
+
+					secretb := model.Secret{DecryptedData: []byte("test1")}
+					m.me.On("Decrypt", mock.Anything, secret, mock.Anything).Once().Return(&secretb, nil)
+
+					m.msr.On("SaveDecryptedSecret", mock.Anything, secretb).Once().Return(nil)
+				}
+			},
+		},
+
+		"Ignoring secrets after a validation shouldn't use the ignored secrets.": {
+			req: decrypt.DecryptBoxRequest{
+				SecretIDs: []string{"secret1", "ignored"},
+			},
+			mock: func(m mocks) {
+				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
+				m.msp.On("ProcessID", mock.Anything, "ignored").Once().Return("", nil)
 				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
 
 				// Processed secret.
@@ -72,6 +108,9 @@ func TestDecryptBox(t *testing.T) {
 				},
 			},
 			mock: func(m mocks) {
+				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
+				m.msp.On("ProcessID", mock.Anything, "wrongsecret1").Once().Return("wrongsecret1", nil)
+				m.msp.On("ProcessID", mock.Anything, "secret2").Once().Return("secret2", nil)
 				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
 
 				// Secret 1.
@@ -109,6 +148,7 @@ func TestDecryptBox(t *testing.T) {
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
+				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
 				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
 
 				// Processed secret.
@@ -124,6 +164,7 @@ func TestDecryptBox(t *testing.T) {
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
+				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
 				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
 
 				// Processed secret.
@@ -140,6 +181,7 @@ func TestDecryptBox(t *testing.T) {
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
+				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
 				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
 
 				// Processed secret.
@@ -163,14 +205,16 @@ func TestDecryptBox(t *testing.T) {
 				mkr: &storagemock.KeyRepository{},
 				msr: &storagemock.SecretRepository{},
 				me:  &encryptmock.Encrypter{},
+				msp: &processmock.IDProcessor{},
 			}
 			test.mock(m)
 
 			// Prepare and execute.
 			config := decrypt.ServiceConfig{
-				KeyRepo:    m.mkr,
-				SecretRepo: m.msr,
-				Encrypter:  m.me,
+				KeyRepo:           m.mkr,
+				SecretRepo:        m.msr,
+				Encrypter:         m.me,
+				SecretIDProcessor: m.msp,
 			}
 			svc, err := decrypt.NewService(config)
 			require.NoError(err)
@@ -186,6 +230,7 @@ func TestDecryptBox(t *testing.T) {
 			m.mkr.AssertExpectations(t)
 			m.msr.AssertExpectations(t)
 			m.me.AssertExpectations(t)
+			m.msp.AssertExpectations(t)
 		})
 	}
 }

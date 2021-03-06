@@ -9,6 +9,7 @@ import (
 	boxencrypt "github.com/slok/agebox/internal/box/encrypt"
 	keyage "github.com/slok/agebox/internal/key/age"
 	encryptage "github.com/slok/agebox/internal/secret/encrypt/age"
+	"github.com/slok/agebox/internal/secret/process"
 	storagefs "github.com/slok/agebox/internal/storage/fs"
 )
 
@@ -61,6 +62,13 @@ func (e encryptCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("could not create secret repository: %w", err)
 	}
 
+	// Create secret ID processor.
+	secretIDProc := process.NewIDProcessorChain(
+		process.NewPathSanitizer(""),
+		process.NewIgnoreAlreadyProcessed(map[string]struct{}{}), // This should be after pathSanitizer.
+		process.NewEncryptionPathState(secretRepo, logger),
+	)
+
 	// Get all tracked files.
 	if e.EncryptAll {
 		tracked, err := trackRepo.GetSecretRegistry(ctx)
@@ -77,11 +85,12 @@ func (e encryptCommand) Run(ctx context.Context, config RootConfig) error {
 
 	// Create the application service.
 	appSvc, err := boxencrypt.NewService(boxencrypt.ServiceConfig{
-		TrackRepo:  trackRepo,
-		KeyRepo:    keyRepo,
-		SecretRepo: secretRepo,
-		Encrypter:  encryptage.Encrypter,
-		Logger:     logger,
+		TrackRepo:         trackRepo,
+		KeyRepo:           keyRepo,
+		SecretRepo:        secretRepo,
+		Encrypter:         encryptage.Encrypter,
+		SecretIDProcessor: secretIDProc,
+		Logger:            logger,
 	})
 	if err != nil {
 		return fmt.Errorf("could not create encrypt service: %w", err)

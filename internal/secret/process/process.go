@@ -21,6 +21,15 @@ func (f IDProcessorFunc) ProcessID(ctx context.Context, secretID string) (string
 	return f(ctx, secretID)
 }
 
+type noopIDProcessor bool
+
+func (noopIDProcessor) ProcessID(_ context.Context, secretID string) (string, error) {
+	return secretID, nil
+}
+
+// NoopIDProcessor is a noop ID secret processor.
+const NoopIDProcessor = noopIDProcessor(false)
+
 // NewIDProcessorChain returns a processor that chains multiple processors at the same time.
 func NewIDProcessorChain(processors ...IDProcessor) IDProcessor {
 	return IDProcessorFunc(func(ctx context.Context, secretID string) (string, error) {

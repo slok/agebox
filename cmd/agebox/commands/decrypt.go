@@ -9,6 +9,7 @@ import (
 	boxdecrypt "github.com/slok/agebox/internal/box/decrypt"
 	keyage "github.com/slok/agebox/internal/key/age"
 	encryptage "github.com/slok/agebox/internal/secret/encrypt/age"
+	"github.com/slok/agebox/internal/secret/process"
 	storagefs "github.com/slok/agebox/internal/storage/fs"
 )
 
@@ -55,6 +56,13 @@ func (d decryptCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("could not create secret repository: %w", err)
 	}
 
+	// Create secret ID processor.
+	secretIDProc := process.NewIDProcessorChain(
+		process.NewPathSanitizer(""),
+		process.NewIgnoreAlreadyProcessed(map[string]struct{}{}), // This should be after pathSanitizer.
+		process.NewDecryptionPathState(true, secretRepo, logger),
+	)
+
 	// Get all tracked files.
 	if d.DecryptAll {
 		trackRepo, err := storagefs.NewTrackRepository(storagefs.TrackRepositoryConfig{Logger: logger})
@@ -76,10 +84,11 @@ func (d decryptCommand) Run(ctx context.Context, config RootConfig) error {
 
 	// Create the application service.
 	appSvc, err := boxdecrypt.NewService(boxdecrypt.ServiceConfig{
-		KeyRepo:    keyRepo,
-		SecretRepo: secretRepo,
-		Encrypter:  encryptage.Encrypter,
-		Logger:     logger,
+		KeyRepo:           keyRepo,
+		SecretRepo:        secretRepo,
+		Encrypter:         encryptage.Encrypter,
+		SecretIDProcessor: secretIDProc,
+		Logger:            logger,
 	})
 	if err != nil {
 		return fmt.Errorf("could not create decrypt service: %w", err)
