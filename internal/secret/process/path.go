@@ -3,6 +3,7 @@ package process
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/slok/agebox/internal/log"
@@ -10,7 +11,7 @@ import (
 )
 
 // NewPathSanitizer knows how to sanitize a path for a secret returning
-// always the original path.
+// always the original path in a sane way.
 func NewPathSanitizer(encryptExt string) IDProcessor {
 	if encryptExt == "" {
 		encryptExt = ".agebox"
@@ -19,7 +20,11 @@ func NewPathSanitizer(encryptExt string) IDProcessor {
 	}
 
 	return IDProcessorFunc(func(_ context.Context, secretID string) (string, error) {
-		return strings.TrimSuffix(secretID, encryptExt), nil
+		// Fix prefix.
+		secretID = strings.TrimSuffix(secretID, encryptExt)
+
+		// Sanitize full path.
+		return filepath.Clean(secretID), nil
 	})
 }
 
