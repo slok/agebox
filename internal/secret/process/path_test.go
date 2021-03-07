@@ -41,6 +41,16 @@ func TestPathSanitizer(t *testing.T) {
 			secret:    "test.something",
 			expSecret: "test",
 		},
+
+		"Having a secret with relative prefix.": {
+			secret:    "./test.something",
+			expSecret: "test.something",
+		},
+
+		"Having a secret with directory suffix.": {
+			secret:    "something/test.something/",
+			expSecret: "something/test.something",
+		},
 	}
 
 	for name, test := range tests {
