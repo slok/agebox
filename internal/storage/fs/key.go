@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
-	"os"
 	"path/filepath"
 
 	"github.com/slok/agebox/internal/key"
@@ -17,7 +16,7 @@ type keyRepository struct {
 	publicKeysPath string
 	privateKeyPath string
 	keyFactory     key.Factory
-	fs             fs.FS
+	fileManager    FileManager
 	logger         log.Logger
 }
 
@@ -26,7 +25,7 @@ type KeyRepositoryConfig struct {
 	PublicKeysPath string
 	PrivateKeyPath string
 	KeyFactory     key.Factory
-	FS             fs.FS
+	FileManager    FileManager
 	Logger         log.Logger
 }
 
@@ -35,16 +34,11 @@ func (c *KeyRepositoryConfig) defaults() error {
 		return fmt.Errorf("key factory is required")
 	}
 
-	if filepath.IsAbs(c.PublicKeysPath) {
-		return fmt.Errorf("public keys path must be relative to working directory")
-	}
+	c.PublicKeysPath = filepath.Clean(c.PublicKeysPath)
+	c.PrivateKeyPath = filepath.Clean(c.PrivateKeyPath)
 
-	if filepath.IsAbs(c.PrivateKeyPath) {
-		return fmt.Errorf("private key path must be relative to working directory")
-	}
-
-	if c.FS == nil {
-		c.FS = os.DirFS(".")
+	if c.FileManager == nil {
+		c.FileManager = defaultFileManager
 	}
 
 	if c.Logger == nil {
@@ -68,14 +62,14 @@ func NewKeyRepository(config KeyRepositoryConfig) (storage.KeyRepository, error)
 		publicKeysPath: config.PublicKeysPath,
 		privateKeyPath: config.PrivateKeyPath,
 		keyFactory:     config.KeyFactory,
-		fs:             config.FS,
+		fileManager:    config.FileManager,
 		logger:         config.Logger,
 	}, nil
 }
 
 func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyList, error) {
 	keys := []model.PublicKey{}
-	err := fs.WalkDir(k.fs, k.publicKeysPath, fs.WalkDirFunc(func(path string, d fs.DirEntry, err error) error {
+	err := k.fileManager.WalkDir(ctx, k.publicKeysPath, fs.WalkDirFunc(func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -83,7 +77,7 @@ func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyLi
 			return nil
 		}
 
-		data, err := fs.ReadFile(k.fs, path)
+		data, err := k.fileManager.ReadFile(ctx, path)
 		if err != nil {
 			return fmt.Errorf("could not load public key %q data from file: %w", path, err)
 		}
@@ -106,7 +100,7 @@ func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyLi
 }
 
 func (k keyRepository) GetPrivateKey(ctx context.Context) (model.PrivateKey, error) {
-	data, err := fs.ReadFile(k.fs, k.privateKeyPath)
+	data, err := k.fileManager.ReadFile(ctx, k.privateKeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not load private key %q data from file: %w", k.privateKeyPath, err)
 	}

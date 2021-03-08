@@ -75,6 +75,20 @@ func (_m *FileManager) StatFile(ctx context.Context, path string) (iofs.FileInfo
 	return r0, r1
 }
 
+// WalkDir provides a mock function with given fields: ctx, root, fn
+func (_m *FileManager) WalkDir(ctx context.Context, root string, fn iofs.WalkDirFunc) error {
+	ret := _m.Called(ctx, root, fn)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, iofs.WalkDirFunc) error); ok {
+		r0 = rf(ctx, root, fn)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // WriteFile provides a mock function with given fields: ctx, path, data
 func (_m *FileManager) WriteFile(ctx context.Context, path string, data []byte) error {
 	ret := _m.Called(ctx, path, data)

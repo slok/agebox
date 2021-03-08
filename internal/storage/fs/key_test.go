@@ -14,7 +14,18 @@ import (
 	"github.com/slok/agebox/internal/model"
 	"github.com/slok/agebox/internal/storage"
 	storagefs "github.com/slok/agebox/internal/storage/fs"
+	"github.com/slok/agebox/internal/storage/fs/fsmock"
 )
+
+type testFile struct {
+	name string
+	f    *fstest.MapFile
+}
+
+func (t testFile) Name() string               { return t.name }
+func (t testFile) Type() fs.FileMode          { return t.f.Mode.Type() }
+func (t testFile) IsDir() bool                { return t.f.Mode&fs.ModeDir != 0 }
+func (t testFile) Info() (fs.FileInfo, error) { return nil, nil }
 
 type testKey string
 
@@ -25,7 +36,7 @@ func (t testKey) IsPrivate()   {}
 func TestGetPrivateKey(t *testing.T) {
 	tests := map[string]struct {
 		config storagefs.KeyRepositoryConfig
-		mock   func(f fstest.MapFS, m *keymock.Factory)
+		mock   func(mr *fsmock.FileManager, mf *keymock.Factory)
 		expKey model.PrivateKey
 		expErr bool
 	}{
@@ -33,7 +44,9 @@ func TestGetPrivateKey(t *testing.T) {
 			config: storagefs.KeyRepositoryConfig{
 				PrivateKeyPath: "test/key1",
 			},
-			mock:   func(f fstest.MapFS, m *keymock.Factory) {},
+			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
+				mr.On("ReadFile", mock.Anything, "test/key1").Once().Return(nil, fmt.Errorf("something"))
+			},
 			expErr: true,
 		},
 
@@ -41,9 +54,9 @@ func TestGetPrivateKey(t *testing.T) {
 			config: storagefs.KeyRepositoryConfig{
 				PrivateKeyPath: "test/key1",
 			},
-			mock: func(f fstest.MapFS, m *keymock.Factory) {
-				f["test/key1"] = &fstest.MapFile{Data: []byte("key1data")}
-				m.On("GetPrivateKey", mock.Anything, []byte("key1data")).Once().Return(testKey("key1"), nil)
+			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
+				mr.On("ReadFile", mock.Anything, "test/key1").Once().Return([]byte("key1data"), nil)
+				mf.On("GetPrivateKey", mock.Anything, []byte("key1data")).Once().Return(testKey("key1"), nil)
 			},
 			expKey: testKey("key1"),
 		},
@@ -52,9 +65,9 @@ func TestGetPrivateKey(t *testing.T) {
 			config: storagefs.KeyRepositoryConfig{
 				PrivateKeyPath: "test/key1",
 			},
-			mock: func(f fstest.MapFS, m *keymock.Factory) {
-				f["test/key1"] = &fstest.MapFile{Data: []byte("key1data")}
-				m.On("GetPrivateKey", mock.Anything, mock.Anything).Once().Return(nil, fmt.Errorf("something"))
+			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
+				mr.On("ReadFile", mock.Anything, "test/key1").Once().Return([]byte("key1data"), nil)
+				mf.On("GetPrivateKey", mock.Anything, []byte("key1data")).Once().Return(nil, fmt.Errorf("something"))
 			},
 			expErr: true,
 		},
@@ -66,10 +79,10 @@ func TestGetPrivateKey(t *testing.T) {
 
 			// Mocks.
 			mkf := &keymock.Factory{}
-			mfs := fstest.MapFS{}
+			mfs := &fsmock.FileManager{}
 			test.mock(mfs, mkf)
 
-			test.config.FS = mfs
+			test.config.FileManager = mfs
 			test.config.KeyFactory = mkf
 			repo, _ := storagefs.NewKeyRepository(test.config)
 
@@ -88,7 +101,7 @@ func TestGetPrivateKey(t *testing.T) {
 func TestGetPublicKey(t *testing.T) {
 	tests := map[string]struct {
 		config     storagefs.KeyRepositoryConfig
-		mock       func(f fstest.MapFS, m *keymock.Factory)
+		mock       func(mr *fsmock.FileManager, mf *keymock.Factory)
 		expKeyList storage.PublicKeyList
 		expErr     bool
 	}{
@@ -96,8 +109,8 @@ func TestGetPublicKey(t *testing.T) {
 			config: storagefs.KeyRepositoryConfig{
 				PublicKeysPath: "test/keys",
 			},
-			mock: func(f fstest.MapFS, m *keymock.Factory) {
-				f["test/keys"] = &fstest.MapFile{Mode: fs.ModeDir}
+			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
+				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(nil)
 			},
 			expKeyList: storage.PublicKeyList{Items: []model.PublicKey{}},
 		},
@@ -106,9 +119,19 @@ func TestGetPublicKey(t *testing.T) {
 			config: storagefs.KeyRepositoryConfig{
 				PublicKeysPath: "test/keys",
 			},
-			mock: func(f fstest.MapFS, m *keymock.Factory) {
-				f["test/keys/key1.pub"] = &fstest.MapFile{Data: []byte("key1data")}
-				m.On("GetPublicKey", mock.Anything, []byte("key1data")).Once().Return(testKey("key1"), nil)
+			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
+				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(nil).Run(func(args mock.Arguments) {
+					fn := args.Get(2).(fs.WalkDirFunc)
+
+					// Mock 1 public key.
+					_ = fn("test/keys/key1.pub", testFile{
+						name: "test/keys/key1.pub",
+						f:    &fstest.MapFile{Data: []byte("key1data")},
+					}, nil)
+				})
+
+				mr.On("ReadFile", mock.Anything, "test/keys/key1.pub").Once().Return([]byte("key1data"), nil)
+				mf.On("GetPublicKey", mock.Anything, []byte("key1data")).Once().Return(testKey("key1"), nil)
 			},
 			expKeyList: storage.PublicKeyList{Items: []model.PublicKey{
 				testKey("key1"),
@@ -119,35 +142,41 @@ func TestGetPublicKey(t *testing.T) {
 			config: storagefs.KeyRepositoryConfig{
 				PublicKeysPath: "test/keys",
 			},
-			mock: func(f fstest.MapFS, m *keymock.Factory) {
-				f["test/keys/key1.pub"] = &fstest.MapFile{Data: []byte("key1data")}
-				m.On("GetPublicKey", mock.Anything, mock.Anything).Once().Return(nil, fmt.Errorf("something"))
+			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
+				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(fmt.Errorf("something"))
 			},
 			expErr: true,
 		},
 
-		"Having a multiple keys at different levels should load the keys.": {
+		"Having multiple keys at root should load the keys.": {
 			config: storagefs.KeyRepositoryConfig{
 				PublicKeysPath: "test/keys",
 			},
-			mock: func(f fstest.MapFS, m *keymock.Factory) {
-				f["test/keys/key1.pub"] = &fstest.MapFile{Data: []byte("key1data")}
-				f["test/keys/keys-a/key2.pub"] = &fstest.MapFile{Data: []byte("key2data")}
-				f["test/keys/keys-a/keys-b/key3.pub"] = &fstest.MapFile{Data: []byte("key3data")}
-				f["test/keys/keys-a/keys-c/key4.pub"] = &fstest.MapFile{Data: []byte("key4data")}
-				f["test/keys/keys-a/keys-c/key5.pub"] = &fstest.MapFile{Data: []byte("key5data")}
-				m.On("GetPublicKey", mock.Anything, []byte("key1data")).Once().Return(testKey("key1"), nil)
-				m.On("GetPublicKey", mock.Anything, []byte("key2data")).Once().Return(testKey("key2"), nil)
-				m.On("GetPublicKey", mock.Anything, []byte("key3data")).Once().Return(testKey("key3"), nil)
-				m.On("GetPublicKey", mock.Anything, []byte("key4data")).Once().Return(testKey("key4"), nil)
-				m.On("GetPublicKey", mock.Anything, []byte("key5data")).Once().Return(testKey("key5"), nil)
+			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
+				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(nil).Run(func(args mock.Arguments) {
+					fn := args.Get(2).(fs.WalkDirFunc)
+
+					// Mock 2 public key.
+					_ = fn("test/keys/key1.pub", testFile{
+						name: "test/keys/key1.pub",
+						f:    &fstest.MapFile{Data: []byte("key1data")},
+					}, nil)
+
+					_ = fn("test/keys/key2.pub", testFile{
+						name: "test/keys/key2.pub",
+						f:    &fstest.MapFile{Data: []byte("key2data")},
+					}, nil)
+				})
+
+				mr.On("ReadFile", mock.Anything, "test/keys/key1.pub").Once().Return([]byte("key1data"), nil)
+				mf.On("GetPublicKey", mock.Anything, []byte("key1data")).Once().Return(testKey("key1"), nil)
+
+				mr.On("ReadFile", mock.Anything, "test/keys/key2.pub").Once().Return([]byte("key2data"), nil)
+				mf.On("GetPublicKey", mock.Anything, []byte("key2data")).Once().Return(testKey("key2"), nil)
 			},
 			expKeyList: storage.PublicKeyList{Items: []model.PublicKey{
 				testKey("key1"),
 				testKey("key2"),
-				testKey("key3"),
-				testKey("key4"),
-				testKey("key5"),
 			}},
 		},
 	}
@@ -158,10 +187,10 @@ func TestGetPublicKey(t *testing.T) {
 
 			// Mocks.
 			mkf := &keymock.Factory{}
-			mfs := fstest.MapFS{}
+			mfs := &fsmock.FileManager{}
 			test.mock(mfs, mkf)
 
-			test.config.FS = mfs
+			test.config.FileManager = mfs
 			test.config.KeyFactory = mkf
 			repo, _ := storagefs.NewKeyRepository(test.config)
 
