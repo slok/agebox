@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/slok/agebox/internal/log"
@@ -18,6 +20,7 @@ type FileManager interface {
 	WriteFile(ctx context.Context, path string, data []byte) error
 	DeleteFile(ctx context.Context, path string) error
 	StatFile(ctx context.Context, path string) (os.FileInfo, error)
+	WalkDir(ctx context.Context, root string, fn fs.WalkDirFunc) error
 }
 
 //go:generate mockery --case underscore --output fsmock --outpkg fsmock --name FileManager
@@ -25,12 +28,15 @@ type FileManager interface {
 type fileManager bool
 
 func (fileManager) ReadFile(_ context.Context, path string) ([]byte, error) { return os.ReadFile(path) }
-func (fileManager) WriteFile(ctx context.Context, path string, data []byte) error {
+func (fileManager) WriteFile(_ context.Context, path string, data []byte) error {
 	return os.WriteFile(path, data, 0644)
 }
 func (fileManager) DeleteFile(_ context.Context, path string) error { return os.Remove(path) }
-func (fileManager) StatFile(ctx context.Context, path string) (os.FileInfo, error) {
+func (fileManager) StatFile(_ context.Context, path string) (os.FileInfo, error) {
 	return os.Stat(path)
+}
+func (fileManager) WalkDir(_ context.Context, root string, fn fs.WalkDirFunc) error {
+	return filepath.WalkDir(root, fn)
 }
 
 const defaultFileManager = fileManager(true)
