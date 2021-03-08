@@ -3,12 +3,14 @@ package commands
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	boxencrypt "github.com/slok/agebox/internal/box/encrypt"
 	keyage "github.com/slok/agebox/internal/key/age"
 	encryptage "github.com/slok/agebox/internal/secret/encrypt/age"
+	"github.com/slok/agebox/internal/secret/expand"
 	"github.com/slok/agebox/internal/secret/process"
 	storagefs "github.com/slok/agebox/internal/storage/fs"
 )
@@ -81,6 +83,13 @@ func (e encryptCommand) Run(ctx context.Context, config RootConfig) error {
 		}
 
 		logger.Infof("Using %d tracked files", len(e.Files))
+	} else {
+		// Expand files in recursive mode.
+		expander := expand.NewFSExpander(os.DirFS("."))
+		e.Files, err = expander.Expand(ctx, e.Files)
+		if err != nil {
+			return fmt.Errorf("could not expand files recursively: %w", err)
+		}
 	}
 
 	// Create the application service.
