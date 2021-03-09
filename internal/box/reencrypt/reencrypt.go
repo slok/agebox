@@ -40,7 +40,7 @@ func (c *ServiceConfig) defaults() error {
 	if c.Logger == nil {
 		c.Logger = log.Noop
 	}
-	c.Logger = c.Logger.WithValues(log.Kv{"svc": "box.encrypt.Service"})
+	c.Logger = c.Logger.WithValues(log.Kv{"svc": "box.reencrypt.Service"})
 
 	return nil
 }
