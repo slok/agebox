@@ -12,6 +12,7 @@ import (
 	encryptage "github.com/slok/agebox/internal/secret/encrypt/age"
 	"github.com/slok/agebox/internal/secret/expand"
 	"github.com/slok/agebox/internal/secret/process"
+	"github.com/slok/agebox/internal/storage"
 	storagefs "github.com/slok/agebox/internal/storage/fs"
 )
 
@@ -19,6 +20,7 @@ type decryptCommand struct {
 	PrivateKeyPath string
 	Files          []string
 	DecryptAll     bool
+	DryRun         bool
 }
 
 // NewDecryptCommand returns the decrypt command.
@@ -27,6 +29,7 @@ func NewDecryptCommand(app *kingpin.Application) Command {
 	cmd := app.Command("decrypt", "Decrypts any number of tracked files.")
 	cmd.Flag("private-key", "Path to private key.").Required().Short('i').StringVar(&c.PrivateKeyPath)
 	cmd.Flag("all", "Decrypts all tracked files.").Short('a').BoolVar(&c.DecryptAll)
+	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored").BoolVar(&c.DryRun)
 	cmd.Arg("files", "Files to decrypt.").StringsVar(&c.Files)
 
 	return c
@@ -41,6 +44,11 @@ func (d decryptCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("while decrypting all tracked files can't use specific files as arguments")
 	}
 
+	var (
+		keyRepo    storage.KeyRepository
+		secretRepo storage.SecretRepository
+	)
+
 	// Create repositories
 	keyRepo, err := storagefs.NewKeyRepository(storagefs.KeyRepositoryConfig{
 		PrivateKeyPath: d.PrivateKeyPath,
@@ -51,11 +59,18 @@ func (d decryptCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("could not create key repository: %w", err)
 	}
 
-	secretRepo, err := storagefs.NewSecretRepository(storagefs.SecretRepositoryConfig{
+	secretRepo, err = storagefs.NewSecretRepository(storagefs.SecretRepositoryConfig{
 		Logger: logger,
 	})
 	if err != nil {
 		return fmt.Errorf("could not create secret repository: %w", err)
+	}
+
+	// If we are in dry-run set the correct repositories.
+	if d.DryRun {
+		logger.Warningf("Dry run mode enabled")
+		keyRepo = storage.NewDryRunKeyRepository(logger, keyRepo)
+		secretRepo = storage.NewDryRunSecretRepository(logger, secretRepo)
 	}
 
 	// Create secret ID processor.
