@@ -27,6 +27,8 @@ type SecretRepository interface {
 	SaveDecryptedSecret(ctx context.Context, secret model.Secret) error
 	ExistsDecryptedSecret(ctx context.Context, id string) (bool, error)
 	ExistsEncryptedSecret(ctx context.Context, id string) (bool, error)
+	DeleteDecryptedSecret(ctx context.Context, id string) error
+	DeleteEncryptedSecret(ctx context.Context, id string) error
 }
 
 //go:generate mockery --case underscore --output storagemock --outpkg storagemock --name SecretRepository

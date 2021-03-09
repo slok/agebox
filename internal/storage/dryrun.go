@@ -53,6 +53,17 @@ func (d dryRunSecretRepository) ExistsEncryptedSecret(ctx context.Context, id st
 	return d.repo.ExistsEncryptedSecret(ctx, id)
 }
 
+func (d dryRunSecretRepository) DeleteDecryptedSecret(ctx context.Context, id string) error {
+	d.logger.WithValues(log.Kv{"secret-id": id}).
+		Warningf("Not deleting decrypted secret (dry-run)")
+	return nil
+}
+func (d dryRunSecretRepository) DeleteEncryptedSecret(ctx context.Context, id string) error {
+	d.logger.WithValues(log.Kv{"secret-id": id}).
+		Warningf("Not deleting encrypted secret (dry-run)")
+	return nil
+}
+
 // We are not using anonymous composition in the repository because we want
 // to fail when we are adding a new method to the interface so we don't use
 // a write real implementation operation/method of the wrapped repository

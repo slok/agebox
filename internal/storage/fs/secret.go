@@ -168,15 +168,7 @@ func (s secretRepository) SaveDecryptedSecret(ctx context.Context, secret model.
 	}
 
 	// Delete encrypted file if not missing already.
-	exists, err := s.existsSecret(ctx, encPath)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return nil
-	}
-
-	err = s.fileManager.DeleteFile(ctx, encPath)
+	err = s.ensureFileMissing(ctx, encPath)
 	if err != nil {
 		return fmt.Errorf("could not delete decrypted file: %w", err)
 	}
@@ -190,6 +182,46 @@ func (s secretRepository) ExistsDecryptedSecret(ctx context.Context, id string) 
 
 func (s secretRepository) ExistsEncryptedSecret(ctx context.Context, id string) (bool, error) {
 	return s.existsSecret(ctx, strings.TrimSuffix(id, s.fileExtension)+s.fileExtension)
+}
+
+func (s secretRepository) DeleteDecryptedSecret(ctx context.Context, id string) error {
+	decPath := strings.TrimSuffix(id, s.fileExtension)
+
+	err := s.ensureFileMissing(ctx, decPath)
+	if err != nil {
+		return fmt.Errorf("could not delete decrypted file: %w", err)
+	}
+
+	return nil
+}
+
+func (s secretRepository) DeleteEncryptedSecret(ctx context.Context, id string) error {
+	encPath := strings.TrimSuffix(id, s.fileExtension) + s.fileExtension
+
+	err := s.ensureFileMissing(ctx, encPath)
+	if err != nil {
+		return fmt.Errorf("could not delete encrypted file: %w", err)
+	}
+
+	return nil
+}
+
+// deletes file if not missing already.
+func (s secretRepository) ensureFileMissing(ctx context.Context, path string) error {
+	exists, err := s.existsSecret(ctx, path)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
+
+	err = s.fileManager.DeleteFile(ctx, path)
+	if err != nil {
+		return fmt.Errorf("could not delete file: %w", err)
+	}
+
+	return nil
 }
 
 func (s secretRepository) existsSecret(ctx context.Context, id string) (bool, error) {
