@@ -2,7 +2,10 @@ package process
 
 import (
 	"context"
+	"fmt"
 	"sync"
+
+	"github.com/slok/agebox/internal/log"
 )
 
 // IDProcessor knows how to process Secret IDs.
@@ -74,5 +77,26 @@ func NewIgnoreAlreadyProcessed(cache map[string]struct{}) IDProcessor {
 		cache[secretID] = struct{}{}
 
 		return secretID, nil
+	})
+}
+
+// NewTrackedState checks that the secret is in the tracked secret IDs and will perform an
+// action of error or ignore based on an option.
+func NewTrackedState(trackedSecretIDs map[string]struct{}, ignoreMissing bool, logger log.Logger) IDProcessor {
+	return IDProcessorFunc(func(ctx context.Context, secretID string) (string, error) {
+		logger := logger.WithValues(log.Kv{"secret-id": secretID})
+
+		_, ok := trackedSecretIDs[secretID]
+		if ok {
+			return secretID, nil
+		}
+
+		if ignoreMissing {
+			// Already encrypted, ignore.
+			logger.Warningf("Ignoring secret, untracked already")
+			return "", nil
+		}
+
+		return "", fmt.Errorf("%q secret untracked", secretID)
 	})
 }

@@ -55,7 +55,7 @@ func NewDecryptionPathState(ignoreBothExists bool, repo storage.SecretRepository
 		switch {
 		case encOK && decOK && ignoreBothExists:
 			// Already decrypted, ignore.
-			logger.Warningf("ignoring secret, already decrypted")
+			logger.Warningf("Ignoring secret, already decrypted")
 			return "", nil
 		case encOK && decOK && !ignoreBothExists:
 			// Already decrypted, however we don't care, allow decrypting.
@@ -65,7 +65,7 @@ func NewDecryptionPathState(ignoreBothExists bool, repo storage.SecretRepository
 			return secretID, nil
 		case !encOK && decOK:
 			// Already decrypted, ignore.
-			logger.Warningf("ignoring secret, already decrypted")
+			logger.Warningf("Ignoring secret, already decrypted")
 			return "", nil
 		}
 
@@ -99,11 +99,11 @@ func NewEncryptionPathState(repo storage.SecretRepository, logger log.Logger) ID
 		switch {
 		case encOK && decOK:
 			// Already encrypted, ignore.
-			logger.Warningf("ignoring secret, already encrypted")
+			logger.Warningf("Ignoring secret, already encrypted")
 			return "", nil
 		case encOK && !decOK:
 			// Already encrypted, ignore.
-			logger.Warningf("ignoring secret, already encrypted")
+			logger.Warningf("Ignoring secret, already encrypted")
 			return "", nil
 		case !encOK && decOK:
 			// Allow encrypting.
