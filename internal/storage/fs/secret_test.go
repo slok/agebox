@@ -628,3 +628,135 @@ func TestExistsEncryptedSecret(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteDecryptedSecret(t *testing.T) {
+	tests := map[string]struct {
+		config fs.SecretRepositoryConfig
+		id     string
+		mock   func(mfm *fsmock.FileManager)
+		expErr bool
+	}{
+		"Deleting a decrypted file that doesn't exists should not try deleting the file.": {
+			id: "secrets/app1/secret1.yaml",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, os.ErrNotExist)
+			},
+		},
+
+		"Path should be sanitized for a decrypted file.": {
+			id: "secrets/app1/secret1.yaml.agebox",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, os.ErrNotExist)
+			},
+		},
+
+		"Deleting a decrypted file that exists should delete the file.": {
+			id: "secrets/app1/secret1.yaml",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, nil)
+				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil)
+			},
+		},
+
+		"Having an error while deleting a file should fail.": {
+			id: "secrets/app1/secret1.yaml",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, nil)
+				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(fmt.Errorf("something"))
+			},
+			expErr: true,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+			require := require.New(t)
+
+			// Mock.
+			mfm := &fsmock.FileManager{}
+			test.mock(mfm)
+
+			// Prepare.
+			test.config.FileManager = mfm
+			repo, err := fs.NewSecretRepository(test.config)
+			require.NoError(err)
+
+			err = repo.DeleteDecryptedSecret(context.TODO(), test.id)
+
+			if test.expErr {
+				assert.Error(err)
+			} else {
+				assert.NoError(err)
+			}
+
+			mfm.AssertExpectations(t)
+		})
+	}
+}
+
+func TestDeleteencryptedSecret(t *testing.T) {
+	tests := map[string]struct {
+		config fs.SecretRepositoryConfig
+		id     string
+		mock   func(mfm *fsmock.FileManager)
+		expErr bool
+	}{
+		"Deleting a encrypted file that doesn't exists should not try deleting the file.": {
+			id: "secrets/app1/secret1.yaml.agebox",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, os.ErrNotExist)
+			},
+		},
+
+		"Path should be sanitized for a decrypted file.": {
+			id: "secrets/app1/secret1.yaml",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, os.ErrNotExist)
+			},
+		},
+
+		"Deleting a decrypted file that exists should delete the file.": {
+			id: "secrets/app1/secret1.yaml.agebox",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, nil)
+				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil)
+			},
+		},
+
+		"Having an error while deleting a file should fail.": {
+			id: "secrets/app1/secret1.yaml.agebox",
+			mock: func(mfm *fsmock.FileManager) {
+				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, nil)
+				mfm.On("DeleteFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(fmt.Errorf("something"))
+			},
+			expErr: true,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+			require := require.New(t)
+
+			// Mock.
+			mfm := &fsmock.FileManager{}
+			test.mock(mfm)
+
+			// Prepare.
+			test.config.FileManager = mfm
+			repo, err := fs.NewSecretRepository(test.config)
+			require.NoError(err)
+
+			err = repo.DeleteEncryptedSecret(context.TODO(), test.id)
+
+			if test.expErr {
+				assert.Error(err)
+			} else {
+				assert.NoError(err)
+			}
+
+			mfm.AssertExpectations(t)
+		})
+	}
+}
