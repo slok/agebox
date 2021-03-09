@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/slok/agebox/internal/log"
 	"github.com/slok/agebox/internal/secret/process"
 	"github.com/slok/agebox/internal/secret/process/processmock"
 )
@@ -134,6 +135,53 @@ func TestIgnoreAlreadyProcessed(t *testing.T) {
 			assert := assert.New(t)
 
 			p := process.NewIgnoreAlreadyProcessed(test.cache)
+			gotSecret, err := p.ProcessID(context.TODO(), test.secret)
+
+			if test.expErr {
+				assert.Error(err)
+			} else if assert.NoError(err) {
+				assert.Equal(test.expSecret, gotSecret)
+			}
+		})
+	}
+}
+
+func TestTrackedState(t *testing.T) {
+	tests := map[string]struct {
+		ignoreMissing  bool
+		trackedSecrets map[string]struct{}
+		secret         string
+		expSecret      string
+		expErr         bool
+	}{
+		"Having a tracked secret should allow.": {
+			trackedSecrets: map[string]struct{}{
+				"test0": {},
+				"test1": {},
+			},
+			secret:    "test1",
+			expSecret: "test1",
+		},
+
+		"Not having a tracked secret should fail.": {
+			trackedSecrets: map[string]struct{}{},
+			secret:         "test1",
+			expErr:         true,
+		},
+
+		"Not having a tracked secret and ignoring, should not fail.": {
+			ignoreMissing:  true,
+			trackedSecrets: map[string]struct{}{},
+			secret:         "test1",
+			expSecret:      "",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+
+			p := process.NewTrackedState(test.trackedSecrets, test.ignoreMissing, log.Noop)
 			gotSecret, err := p.ProcessID(context.TODO(), test.secret)
 
 			if test.expErr {
