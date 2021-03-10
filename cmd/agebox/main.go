@@ -75,6 +75,17 @@ func getLogger(config commands.RootConfig, stderr io.Writer) log.Logger {
 		logrusLogEntry.Logger.SetLevel(logrus.DebugLevel)
 	}
 
+	// Log format.
+	switch config.LoggerType {
+	case commands.LoggerTypeDefault:
+		logrusLogEntry.Logger.SetFormatter(&logrus.TextFormatter{
+			ForceColors:   !config.NoColor,
+			DisableColors: config.NoColor,
+		})
+	case commands.LoggerTypeJSON:
+		logrusLogEntry.Logger.SetFormatter(&logrus.JSONFormatter{})
+	}
+
 	logger := loglogrus.NewLogrus(logrusLogEntry).WithValues(log.Kv{
 		"version": Version,
 	})
