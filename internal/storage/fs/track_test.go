@@ -26,8 +26,14 @@ func TestGetSecretRegistry(t *testing.T) {
 	}{
 		"Getting secret tracking file should retrieve the data and map to model correctly.": {
 			mock: func(mfm *fsmock.FileManager) {
-				ageboxRegJSON := `{"version": "1", "file_ids": ["f1", "f2", "a/f3"], "updated_at": "2021-02-28T08:51:52.185757405Z"	}`
-				mfm.On("ReadFile", mock.Anything, "ageboxreg.json").Once().Return([]byte(ageboxRegJSON), nil)
+				ageboxRegYAML := `
+version: "1"
+file_ids:
+  - f1
+  - f2
+  - a/f3
+updated_at: "2021-02-28T08:51:52.185757405Z"`
+				mfm.On("ReadFile", mock.Anything, ".ageboxreg.yml").Once().Return([]byte(ageboxRegYAML), nil)
 			},
 			expSecretReg: model.SecretRegistry{
 				EncryptedSecrets: map[string]struct{}{
@@ -56,8 +62,14 @@ func TestGetSecretRegistry(t *testing.T) {
 
 		"An invalid tracking file version should fail.": {
 			mock: func(mfm *fsmock.FileManager) {
-				ageboxRegJSON := `{"version": "2", "file_ids": ["f1", "f2", "a/f3"], "updated_at": "2021-02-28T08:51:52.185757405Z"	}`
-				mfm.On("ReadFile", mock.Anything, mock.Anything).Once().Return([]byte(ageboxRegJSON), nil)
+				ageboxRegYAML := `
+version: "2"
+file_ids:
+  - f1
+  - f2
+  - a/f3
+updated_at: "2021-02-28T08:51:52.185757405Z"`
+				mfm.On("ReadFile", mock.Anything, mock.Anything).Once().Return([]byte(ageboxRegYAML), nil)
 			},
 			expErr: true,
 		},
@@ -109,16 +121,14 @@ func TestSaveSecretRegistry(t *testing.T) {
 				UpdatedAt: t0,
 			},
 			mock: func(mfm *fsmock.FileManager) {
-				expAgeboxRegJSON := `{
-  "version": "1",
-  "file_ids": [
-    "a/f3",
-    "f1",
-    "f2"
-  ],
-  "updated_at": "2021-02-28T08:51:52.185757405Z"
-}`
-				mfm.On("WriteFile", mock.Anything, "ageboxreg.json", []byte(expAgeboxRegJSON)).Once().Return(nil)
+				expAgeboxRegJSON := `file_ids:
+- a/f3
+- f1
+- f2
+updated_at: "2021-02-28T08:51:52.185757405Z"
+version: "1"
+`
+				mfm.On("WriteFile", mock.Anything, ".ageboxreg.yml", []byte(expAgeboxRegJSON)).Once().Return(nil)
 			},
 		},
 
