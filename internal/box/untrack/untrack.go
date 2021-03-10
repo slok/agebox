@@ -76,17 +76,17 @@ func (s Service) UntrackBox(ctx context.Context, r UntrackBoxRequest) error {
 
 	secretIDs := []string{}
 	for _, secret := range r.SecretIDs {
-		secret, err := s.secretIDProcessor.ProcessID(ctx, secret)
+		pSecret, err := s.secretIDProcessor.ProcessID(ctx, secret)
 		if err != nil {
 			return fmt.Errorf("invalid secret %q: %w", secret, err)
 		}
 
 		// Ignore.
-		if secret == "" {
+		if pSecret == "" {
 			continue
 		}
 
-		secretIDs = append(secretIDs, secret)
+		secretIDs = append(secretIDs, pSecret)
 	}
 
 	// Load secret tracks.
