@@ -35,10 +35,11 @@ func NewPathSanitizer(encryptExt string) IDProcessor {
 // |------------------|-----------|-----------|--------|
 // |                  | No        | No        | Error  |
 // |                  | Yes       | No        | Allow  |
-// |                  | No        | Yes       | Ignore |
-// | ignoreBothExists | Yes       | Yes       | Ignore |
-// |                  | Yes       | Yes       | Allow  |
-func NewDecryptionPathState(ignoreBothExists bool, repo storage.SecretRepository, logger log.Logger) IDProcessor {
+// | !forceDecrypt    | No        | Yes       | Ignore |
+// | forceDecrypt     | No        | Yes       | Error  |
+// | !forceDecrypt    | Yes       | Yes       | Ignore |
+// | forceDecrypt     | Yes       | Yes       | Allow  |
+func NewDecryptionPathState(forceDecrypt bool, repo storage.SecretRepository, logger log.Logger) IDProcessor {
 	return IDProcessorFunc(func(ctx context.Context, secretID string) (string, error) {
 		encOK, err := repo.ExistsEncryptedSecret(ctx, secretID)
 		if err != nil {
@@ -53,17 +54,17 @@ func NewDecryptionPathState(ignoreBothExists bool, repo storage.SecretRepository
 		logger := logger.WithValues(log.Kv{"secret-id": secretID})
 
 		switch {
-		case encOK && decOK && ignoreBothExists:
+		case encOK && decOK && !forceDecrypt:
 			// Already decrypted, ignore.
 			logger.Warningf("Ignoring secret, already decrypted")
 			return "", nil
-		case encOK && decOK && !ignoreBothExists:
+		case encOK && decOK && forceDecrypt:
 			// Already decrypted, however we don't care, allow decrypting.
 			return secretID, nil
 		case encOK && !decOK:
 			// Allow decrypting.
 			return secretID, nil
-		case !encOK && decOK:
+		case !encOK && decOK && !forceDecrypt:
 			// Already decrypted, ignore.
 			logger.Warningf("Ignoring secret, already decrypted")
 			return "", nil

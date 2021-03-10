@@ -20,6 +20,7 @@ type decryptCommand struct {
 	PrivateKeyPath string
 	Files          []string
 	DecryptAll     bool
+	Force          bool
 	DryRun         bool
 }
 
@@ -30,6 +31,7 @@ func NewDecryptCommand(app *kingpin.Application) Command {
 	cmd.Flag("private-key", "Path to private key.").Required().Short('i').StringVar(&c.PrivateKeyPath)
 	cmd.Flag("all", "Decrypts all tracked files.").Short('a').BoolVar(&c.DecryptAll)
 	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored").BoolVar(&c.DryRun)
+	cmd.Flag("force", "Forces the decryption even if decrypted file exists").BoolVar(&c.Force)
 	cmd.Arg("files", "Files to decrypt.").StringsVar(&c.Files)
 
 	return c
@@ -77,7 +79,7 @@ func (d decryptCommand) Run(ctx context.Context, config RootConfig) error {
 	secretIDProc := process.NewIDProcessorChain(
 		process.NewPathSanitizer(""),
 		process.NewIgnoreAlreadyProcessed(map[string]struct{}{}), // This should be after pathSanitizer.
-		process.NewDecryptionPathState(true, secretRepo, logger),
+		process.NewDecryptionPathState(d.Force, secretRepo, logger),
 	)
 
 	// Get all tracked files.
