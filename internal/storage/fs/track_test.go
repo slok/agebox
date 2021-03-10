@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -16,8 +15,6 @@ import (
 )
 
 func TestGetSecretRegistry(t *testing.T) {
-	t0, _ := time.Parse(time.RFC3339, "2021-02-28T08:51:52.185757405Z")
-
 	tests := map[string]struct {
 		config       fs.TrackRepositoryConfig
 		mock         func(mfm *fsmock.FileManager)
@@ -31,8 +28,7 @@ version: "1"
 file_ids:
   - f1
   - f2
-  - a/f3
-updated_at: "2021-02-28T08:51:52.185757405Z"`
+  - a/f3`
 				mfm.On("ReadFile", mock.Anything, ".ageboxreg.yml").Once().Return([]byte(ageboxRegYAML), nil)
 			},
 			expSecretReg: model.SecretRegistry{
@@ -41,7 +37,6 @@ updated_at: "2021-02-28T08:51:52.185757405Z"`
 					"f2":   {},
 					"a/f3": {},
 				},
-				UpdatedAt: t0,
 			},
 		},
 
@@ -67,8 +62,7 @@ version: "2"
 file_ids:
   - f1
   - f2
-  - a/f3
-updated_at: "2021-02-28T08:51:52.185757405Z"`
+  - a/f3`
 				mfm.On("ReadFile", mock.Anything, mock.Anything).Once().Return([]byte(ageboxRegYAML), nil)
 			},
 			expErr: true,
@@ -103,8 +97,6 @@ updated_at: "2021-02-28T08:51:52.185757405Z"`
 }
 
 func TestSaveSecretRegistry(t *testing.T) {
-	t0, _ := time.Parse(time.RFC3339, "2021-02-28T08:51:52.185757405Z")
-
 	tests := map[string]struct {
 		config    fs.TrackRepositoryConfig
 		secretReg model.SecretRegistry
@@ -118,14 +110,12 @@ func TestSaveSecretRegistry(t *testing.T) {
 					"a/f3": {},
 					"f2":   {},
 				},
-				UpdatedAt: t0,
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				expAgeboxRegJSON := `file_ids:
 - a/f3
 - f1
 - f2
-updated_at: "2021-02-28T08:51:52.185757405Z"
 version: "1"
 `
 				mfm.On("WriteFile", mock.Anything, ".ageboxreg.yml", []byte(expAgeboxRegJSON)).Once().Return(nil)
@@ -135,7 +125,6 @@ version: "1"
 		"An error storing secret regostry in the file should fail.": {
 			secretReg: model.SecretRegistry{
 				EncryptedSecrets: map[string]struct{}{},
-				UpdatedAt:        t0,
 			},
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).Once().Return(fmt.Errorf("something"))

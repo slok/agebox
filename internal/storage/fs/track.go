@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"time"
 
 	"github.com/ghodss/yaml"
 
@@ -60,9 +59,8 @@ func NewTrackRepository(config TrackRepositoryConfig) (*TrackRepository, error) 
 const secretRegistryJSONV1ID = "1"
 
 type secretRegistryJSONV1 struct {
-	Version   string    `json:"version"`
-	FileIDs   []string  `json:"file_ids"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Version string   `json:"version"`
+	FileIDs []string `json:"file_ids"`
 }
 
 // GetSecretRegistry gets the secret registry form the file system.
@@ -90,16 +88,12 @@ func (t TrackRepository) GetSecretRegistry(ctx context.Context) (*model.SecretRe
 
 	return &model.SecretRegistry{
 		EncryptedSecrets: ids,
-		UpdatedAt:        sr.UpdatedAt,
 	}, nil
 }
 
 // SaveSecretRegistry saves the secret registry from the file system.
 func (t TrackRepository) SaveSecretRegistry(ctx context.Context, reg model.SecretRegistry) error {
 	// TODO(slok): Safer way of replacing file (e.g: https://github.com/google/renameio).
-	if reg.UpdatedAt.IsZero() {
-		reg.UpdatedAt = time.Now().UTC()
-	}
 
 	// Map.
 	ids := make([]string, 0, len(reg.EncryptedSecrets))
@@ -109,9 +103,8 @@ func (t TrackRepository) SaveSecretRegistry(ctx context.Context, reg model.Secre
 	sort.SliceStable(ids, func(i, j int) bool { return ids[i] < ids[j] })
 
 	sr := secretRegistryJSONV1{
-		Version:   secretRegistryJSONV1ID,
-		FileIDs:   ids,
-		UpdatedAt: reg.UpdatedAt,
+		Version: secretRegistryJSONV1ID,
+		FileIDs: ids,
 	}
 	data, err := yaml.Marshal(sr)
 	if err != nil {
