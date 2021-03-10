@@ -71,11 +71,11 @@ func TestPathSanitizer(t *testing.T) {
 
 func TestDecryptionPathState(t *testing.T) {
 	tests := map[string]struct {
-		ignoreBothExists bool
-		mock             func(m *storagemock.SecretRepository)
-		secret           string
-		expSecret        string
-		expErr           bool
+		forceDecrypt bool
+		mock         func(m *storagemock.SecretRepository)
+		secret       string
+		expSecret    string
+		expErr       bool
 	}{
 		"If checking an encrypted secret exists has an error we should fail.": {
 			mock: func(m *storagemock.SecretRepository) {
@@ -94,23 +94,24 @@ func TestDecryptionPathState(t *testing.T) {
 			expErr: true,
 		},
 
-		"Not ignoring if bot exists and if decrypted is present and encrypted is present should treat as a valid secret.": {
-			mock: func(m *storagemock.SecretRepository) {
-				m.On("ExistsEncryptedSecret", mock.Anything, "test").Once().Return(true, nil)
-				m.On("ExistsDecryptedSecret", mock.Anything, "test").Once().Return(true, nil)
-			},
-			secret:    "test",
-			expSecret: "test",
-		},
-
-		"Ignoring if both exists and if decrypted is present and encrypted is present should ignore secret.": {
-			ignoreBothExists: true,
+		"If encrypted and decrypted are present and no forceDecrypt is used, should ignore secret.": {
+			forceDecrypt: false,
 			mock: func(m *storagemock.SecretRepository) {
 				m.On("ExistsEncryptedSecret", mock.Anything, "test").Once().Return(true, nil)
 				m.On("ExistsDecryptedSecret", mock.Anything, "test").Once().Return(true, nil)
 			},
 			secret:    "test",
 			expSecret: "",
+		},
+
+		"If encrypted and decrypted are present and forceDecrypt is used, should allow decrypt.": {
+			forceDecrypt: true,
+			mock: func(m *storagemock.SecretRepository) {
+				m.On("ExistsEncryptedSecret", mock.Anything, "test").Once().Return(true, nil)
+				m.On("ExistsDecryptedSecret", mock.Anything, "test").Once().Return(true, nil)
+			},
+			secret:    "test",
+			expSecret: "test",
 		},
 
 		"If decrypted is missing and encrypted is missing should fail.": {
@@ -122,7 +123,7 @@ func TestDecryptionPathState(t *testing.T) {
 			expErr: true,
 		},
 
-		"If decrypted is missing and encrypted is present should encrypt.": {
+		"If decrypted is missing and encrypted is present should decrypt.": {
 			mock: func(m *storagemock.SecretRepository) {
 				m.On("ExistsEncryptedSecret", mock.Anything, "test").Once().Return(true, nil)
 				m.On("ExistsDecryptedSecret", mock.Anything, "test").Once().Return(false, nil)
@@ -131,13 +132,23 @@ func TestDecryptionPathState(t *testing.T) {
 			expSecret: "test",
 		},
 
-		"If decrypted is present and encrypted is missing should ignore.": {
+		"If decrypted is present, encrypted is missing and no forceDecrypt, should ignore.": {
 			mock: func(m *storagemock.SecretRepository) {
 				m.On("ExistsEncryptedSecret", mock.Anything, "test").Once().Return(false, nil)
 				m.On("ExistsDecryptedSecret", mock.Anything, "test").Once().Return(true, nil)
 			},
 			secret:    "test",
 			expSecret: "",
+		},
+
+		"If decrypted is present, encrypted is missing and forceDecrypt, should error.": {
+			forceDecrypt: true,
+			mock: func(m *storagemock.SecretRepository) {
+				m.On("ExistsEncryptedSecret", mock.Anything, "test").Once().Return(false, nil)
+				m.On("ExistsDecryptedSecret", mock.Anything, "test").Once().Return(true, nil)
+			},
+			secret: "test",
+			expErr: true,
 		},
 	}
 
@@ -149,7 +160,7 @@ func TestDecryptionPathState(t *testing.T) {
 			mr := &storagemock.SecretRepository{}
 			test.mock(mr)
 
-			p := process.NewDecryptionPathState(test.ignoreBothExists, mr, log.Noop)
+			p := process.NewDecryptionPathState(test.forceDecrypt, mr, log.Noop)
 			gotSecret, err := p.ProcessID(context.TODO(), test.secret)
 
 			if test.expErr {

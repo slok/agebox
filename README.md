@@ -54,10 +54,10 @@ Decrypt a subset of tracked secrets and a file.
 agebox decrypt ./secrets/team-1 ./secrets/secret1.yaml
 ```
 
-Decrypt all tracked files in dry-run, so we don't write to disk, but checks we can decrypt all files correctly.
+Validate all tracked encrypted files exist and decryption is possible.
 
 ```bash
-agebox decrypt --all --dry-run
+agebox decrypt --all --dry-run --force --no-log
 ```
 
 Reencrypt all files.
