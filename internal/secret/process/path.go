@@ -68,9 +68,15 @@ func NewDecryptionPathState(forceDecrypt bool, repo storage.SecretRepository, lo
 			// Already decrypted, ignore.
 			logger.Warningf("Ignoring secret, already decrypted")
 			return "", nil
+		case !encOK && decOK && forceDecrypt:
+			// Already decrypted, but we have a force, so we need the encrypted one.
+			return "", fmt.Errorf("%q secret missing", secretID)
+		case !encOK && !decOK:
+			// Everything missing, error.
+			return "", fmt.Errorf("%q secret missing", secretID)
 		}
 
-		return "", fmt.Errorf("%q secret missing", secretID)
+		return "", fmt.Errorf("unknown secret state")
 	})
 }
 
@@ -109,8 +115,11 @@ func NewEncryptionPathState(repo storage.SecretRepository, logger log.Logger) ID
 		case !encOK && decOK:
 			// Allow encrypting.
 			return secretID, nil
+		case !encOK && !decOK:
+			// Everything missing, error.
+			return "", fmt.Errorf("%q secret missing", secretID)
 		}
 
-		return "", fmt.Errorf("%q secret missing", secretID)
+		return "", fmt.Errorf("unknown secret state")
 	})
 }
