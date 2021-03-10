@@ -2,10 +2,11 @@ package fs
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sort"
 	"time"
+
+	"github.com/ghodss/yaml"
 
 	"github.com/slok/agebox/internal/log"
 	"github.com/slok/agebox/internal/model"
@@ -20,7 +21,7 @@ type TrackRepositoryConfig struct {
 
 func (c *TrackRepositoryConfig) defaults() error {
 	if c.FilePath == "" {
-		c.FilePath = "ageboxreg.json"
+		c.FilePath = ".ageboxreg.yml"
 	}
 
 	if c.FileManager == nil {
@@ -72,7 +73,7 @@ func (t TrackRepository) GetSecretRegistry(ctx context.Context) (*model.SecretRe
 	}
 
 	var sr secretRegistryJSONV1
-	err = json.Unmarshal(data, &sr)
+	err = yaml.Unmarshal(data, &sr)
 	if err != nil {
 		return nil, fmt.Errorf("could not load secret tracking file: %w", err)
 	}
@@ -112,9 +113,9 @@ func (t TrackRepository) SaveSecretRegistry(ctx context.Context, reg model.Secre
 		FileIDs:   ids,
 		UpdatedAt: reg.UpdatedAt,
 	}
-	data, err := json.MarshalIndent(sr, "", "  ")
+	data, err := yaml.Marshal(sr)
 	if err != nil {
-		return fmt.Errorf("could not marshal to JSON: %w", err)
+		return fmt.Errorf("could not marshal to YAML: %w", err)
 	}
 
 	err = t.fileManager.WriteFile(ctx, t.filePath, data)
