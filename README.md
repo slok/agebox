@@ -10,17 +10,17 @@
 
 Easy and simple file repository encryption tool based on [Age].
 
-Have you ever though _this should be simple_ while you were use tools like [Blackbox] , [git-crypt] or [Sops]? This is what agebox is. A tool on top of [Age]'s security system that encrypts/decrypts your repository files, focused on simplicity and gitops.
+Have you ever though _"this should be simple"_ while you were using tools like [Blackbox] , [Git-crypt] or [Sops]? This is what agebox is. A tool on top of [Age]'s security system that encrypts/decrypts your repository files, focused on simplicity and gitops.
 
 ## Features
 
 - Secure (Agebox delegates security to [Age]).
 - Tracks encrypted files in repository.
-- No GPG or agents (simple SSH and Age key file paths).
+- No PGP and no agents, just simple SSH and [Age] key files.
 - File flexibility (encrypts/decrypts recursive paths, multiple/single files, all tracked files...).
 - Reencrypts all tracked files with a single command.
 - Focused on Gitops, CI flows and simplicity.
-- Works with full files (doesn't understand formats like JSON, YAML...).
+- Works with any file (doesn't understand formats like JSON, YAML...).
 
 ## Get agebox
 
@@ -106,12 +106,19 @@ Private key (**singular**) should be passed whenever a decrypt operation is made
 
 You can configure this with `--private-key` flag or `AGEBOX_PRIVATE_KEY` env var.
 
-### Alternatives
+## Alternatives
 
 - [Blackbox]: Uses PGP (requires an agent), complex and sometimes has undesired side effects (e.g git commands execution).
 - [Sops]: Lots of features and very complex for simple use cases.
 - [Git-crypt]: Uses PGP (requires an agent), complex, 100% tied to Git.
 
+## Kudos
+
+Thanks to [@FiloSottile](https://twitter.com/FiloSottile), [@Benjojo12](https://twitter.com/Benjojo12) and all the other [contributors](https://github.com/FiloSottile/age/graphs/contributors) of [Age].
+
+Without [Age], [Agebox] would not exist.
+
+[agebox]: https://github.com/slok/agebox
 [age]: https://github.com/FiloSottile/age
 [blackbox]: https://github.com/StackExchange/blackbox
 [sops]: https://github.com/mozilla/sops
