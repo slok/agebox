@@ -7,41 +7,37 @@ src=./cmd/agebox
 out=./bin/agebox
 
 ostype=${ostype:-"native"}
-binary_ext=""
+
+function build() {
+    ext="${1:-}"
+    goos="${2:-}"
+    goarch="${3:-}"
+    goarm="${4:-}"
+
+    [[ ! -z "${goos}" ]] && export GOOS="${goos}"
+    [[ ! -z "${goarch}" ]] && export GOARCH="${goarch}"
+    [[ ! -z "${goarm}" ]] && export GOARM="${goarm}"
+
+    final_out=${out}${ext}
+    ldf_cmp="-s -w -extldflags '-static'"
+    f_ver="-X main.Version=${VERSION:-dev}"
+
+    echo "Building binary at ${final_out} (GOOS=${GOOS:-}, GOARCH=${GOARCH:-}, GOARM=${GOARM:-}, VERSION=${VERSION:-})"
+    CGO_ENABLED=0 go build -o ${final_out} --ldflags "${ldf_cmp} ${f_ver}"  ${src}
+}
+
 
 if [ $ostype == 'Linux' ]; then
-    echo "Building linux release..."
-    export GOOS=linux
-    export GOARCH=amd64
-    binary_ext=-linux-amd64
+    build "-linux-amd64" "linux" "amd64"
 elif [ $ostype == 'Darwin' ]; then
-    echo "Building darwin release..."
-    export GOOS=darwin
-    export GOARCH=amd64
-    binary_ext=-darwin-amd64
+    build "-darwin-amd64" "darwin" "amd64"
+    build "-darwin-arm64" "darwin" "arm64"
 elif [ $ostype == 'Windows' ]; then
-    echo "Building windows release..."
-    export GOOS=windows
-    export GOARCH=amd64
-    binary_ext=-windows-amd64.exe
-elif [ $ostype == 'ARM64' ]; then
-    echo "Building ARM64 release..."
-    export GOOS=linux
-    export GOARCH=arm64
-    binary_ext=-linux-arm64
+    build "-windows-amd64.exe" "windows" "amd64"
 elif [ $ostype == 'ARM' ]; then
-    echo "Building ARM release..."
-    export GOOS=linux
-    export GOARCH=arm
-    export GOARM=7
-    binary_ext=-linux-arm-v7
+    build "-linux-arm64" "linux" "arm64"
+    build "-linux-arm-v7" "linux" "arm" "7"
 else
-    echo "Building native release..."
+    # Native.
+    build
 fi
-
-final_out=${out}${binary_ext}
-ldf_cmp="-w -extldflags '-static'"
-f_ver="-X main.Version=${VERSION:-dev}"
-
-echo "Building binary at ${final_out}"
-CGO_ENABLED=0 go build -o ${final_out} --ldflags "${ldf_cmp} ${f_ver}"  ${src}

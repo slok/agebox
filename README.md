@@ -21,6 +21,7 @@ Have you ever though _"this should be simple"_ while you were using tools like [
 - Reencrypts all tracked files with a single command.
 - Focused on Gitops, CI flows and simplicity.
 - Works with any file (doesn't understand formats like JSON, YAML...).
+- Single binary/executable.
 
 ## Get agebox
 
@@ -36,7 +37,7 @@ Initialize agebox tracking file.
 agebox init
 ```
 
-Encrypt (and track) multiple file.
+Encrypt (and track) multiple files.
 
 ```bash
 agebox encrypt ./app1/secret1.yaml ./app2/secret1.yaml
