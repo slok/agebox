@@ -5,6 +5,7 @@
 ### Added
 
 - Ignore `#` comments in multi recipient public key files.
+- Alias `update` command for `reencrypt` command.
 
 ## [v0.1.0] - 2021-03-11
 
