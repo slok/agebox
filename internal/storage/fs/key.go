@@ -1,6 +1,8 @@
 package fs
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io/fs"
@@ -77,17 +79,27 @@ func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyLi
 			return nil
 		}
 
+		// Read key file.
 		data, err := k.fileManager.ReadFile(ctx, path)
 		if err != nil {
 			return fmt.Errorf("could not load public key %q data from file: %w", path, err)
 		}
 
-		key, err := k.keyFactory.GetPublicKey(ctx, data)
+		// Just in case we have multiple keys in the file (one per line).
+		dataLines, err := splitLines(data)
 		if err != nil {
-			return fmt.Errorf("could not load public key in %q: %w", path, err)
+			return fmt.Errorf("could not split key data by lines: %w", err)
 		}
 
-		keys = append(keys, key)
+		for _, data := range dataLines {
+			key, err := k.keyFactory.GetPublicKey(ctx, data)
+			if err != nil {
+				return fmt.Errorf("could not load public key in %q: %w", path, err)
+			}
+
+			keys = append(keys, key)
+		}
+
 		return nil
 	}))
 	if err != nil {
@@ -113,4 +125,24 @@ func (k keyRepository) GetPrivateKey(ctx context.Context) (model.PrivateKey, err
 	k.logger.Infof("Loaded private key")
 
 	return key, nil
+}
+
+func splitLines(d []byte) ([][]byte, error) {
+	lines := [][]byte{}
+	sc := bufio.NewScanner(bytes.NewReader(d))
+	for sc.Scan() {
+		line := bytes.TrimSpace(sc.Bytes())
+		if len(line) == 0 {
+			continue
+		}
+
+		lines = append(lines, line)
+	}
+
+	err := sc.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return lines, nil
 }

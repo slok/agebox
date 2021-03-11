@@ -138,6 +138,33 @@ func TestGetPublicKey(t *testing.T) {
 			}},
 		},
 
+		"Having a multiple keys in the same file should load all the keys.": {
+			config: storagefs.KeyRepositoryConfig{
+				PublicKeysPath: "test/keys",
+			},
+			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
+				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(nil).Run(func(args mock.Arguments) {
+					fn := args.Get(2).(fs.WalkDirFunc)
+
+					// Mock 1 public key.
+					_ = fn("test/keys/multikey.pub", testFile{
+						name: "test/keys/multikey.pub",
+						f:    &fstest.MapFile{Data: []byte("key1data")},
+					}, nil)
+				})
+
+				mr.On("ReadFile", mock.Anything, "test/keys/multikey.pub").Once().Return([]byte("key1data\nkey2data\n  \n\nkey3data"), nil)
+				mf.On("GetPublicKey", mock.Anything, []byte("key1data")).Once().Return(testKey("key1"), nil)
+				mf.On("GetPublicKey", mock.Anything, []byte("key2data")).Once().Return(testKey("key2"), nil)
+				mf.On("GetPublicKey", mock.Anything, []byte("key3data")).Once().Return(testKey("key3"), nil)
+			},
+			expKeyList: storage.PublicKeyList{Items: []model.PublicKey{
+				testKey("key1"),
+				testKey("key2"),
+				testKey("key3"),
+			}},
+		},
+
 		"Having an error while loading a key should fail.": {
 			config: storagefs.KeyRepositoryConfig{
 				PublicKeysPath: "test/keys",
