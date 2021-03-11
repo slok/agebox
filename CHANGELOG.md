@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Ignore `#` comments in multi recipient public key files.
+
 ## [v0.1.0] - 2021-03-11
 
 ### Added

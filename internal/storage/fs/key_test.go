@@ -153,7 +153,7 @@ func TestGetPublicKey(t *testing.T) {
 					}, nil)
 				})
 
-				mr.On("ReadFile", mock.Anything, "test/keys/multikey.pub").Once().Return([]byte("key1data\nkey2data\n  \n\nkey3data"), nil)
+				mr.On("ReadFile", mock.Anything, "test/keys/multikey.pub").Once().Return([]byte("key1data\nkey2data\n  \n# nokeydata \nkey3data"), nil)
 				mf.On("GetPublicKey", mock.Anything, []byte("key1data")).Once().Return(testKey("key1"), nil)
 				mf.On("GetPublicKey", mock.Anything, []byte("key2data")).Once().Return(testKey("key2"), nil)
 				mf.On("GetPublicKey", mock.Anything, []byte("key3data")).Once().Return(testKey("key3"), nil)

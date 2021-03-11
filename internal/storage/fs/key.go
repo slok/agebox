@@ -127,12 +127,13 @@ func (k keyRepository) GetPrivateKey(ctx context.Context) (model.PrivateKey, err
 	return key, nil
 }
 
+// splitLines will split lines and remove empty and `#` comment lines.
 func splitLines(d []byte) ([][]byte, error) {
 	lines := [][]byte{}
 	sc := bufio.NewScanner(bytes.NewReader(d))
 	for sc.Scan() {
 		line := bytes.TrimSpace(sc.Bytes())
-		if len(line) == 0 {
+		if len(line) == 0 || bytes.HasPrefix(line, []byte("#")) {
 			continue
 		}
 
