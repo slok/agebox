@@ -44,7 +44,7 @@ func (c *KeyRepositoryConfig) defaults() error {
 	if c.Logger == nil {
 		c.Logger = log.Noop
 	}
-	c.Logger = c.Logger.WithValues(log.Kv{"svc": "storage.fs.KeyRepostory"})
+	c.Logger = c.Logger.WithValues(log.Kv{"svc": "storage.fs.KeyRepository"})
 
 	return nil
 }
