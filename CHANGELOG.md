@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [v0.1.1] - 2021-03-11
+
 ### Added
 
 - Ignore `#` comments in multi recipient public key files.
@@ -19,5 +21,6 @@
 - Untracking of files.
 - Tracking registry initialization.
 
-[unreleased]: https://github.com/slok/agebox/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/slok/agebox/compare/v0.1.1...HEAD
+[v0.1.1]: https://github.com/slok/agebox/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/slok/agebox/releases/tag/v0.1.0
