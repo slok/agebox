@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [v0.1.0] - 2021-03-11
+
 ### Added
 
 - Encryption of files.
@@ -12,5 +14,5 @@
 - Untracking of files.
 - Tracking registry initialization.
 
-[unreleased]: https://github.com/slok/agebox/compare/v1.0.0...HEAD
-[v1.0.0]: https://github.com/slok/agebox/releases/tag/v1.0.0
+[unreleased]: https://github.com/slok/agebox/compare/v0.1.0...HEAD
+[v0.1.0]: https://github.com/slok/agebox/releases/tag/v0.1.0
