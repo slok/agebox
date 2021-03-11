@@ -22,6 +22,7 @@ Have you ever though _"this should be simple"_ while you were using tools like [
 - Focused on Gitops, CI flows and simplicity.
 - Works with any file (doesn't understand formats like JSON, YAML...).
 - Single binary/executable.
+- No side effects like VCS commands (e.g: doesn't execute Git commands for you).
 
 ## Get agebox
 
@@ -79,6 +80,28 @@ Untrack and delete file.
 agebox untrack ./secrets/secret1.yaml --delete
 ```
 
+## How does it work
+
+When you initialize agebox on a repository it will create a file (`.ageboxreg.yml`) that will track all the encrypted
+files in the repository.
+
+From now on if you encrypt files with agebox from the root of the repository it will:
+
+- Track the files if not already tracked.
+- Encrypt the files with the public keys in `./keys` or `--public-keys` as recipients.
+- If is a directory it will expand to all the files in the directory and subdirectories.
+
+As a regular flow of agebox usage examples, you can:
+
+- Decrypt tracked files as a single file, multiple files, a directory and its subdirectories...
+- Decrypt all tracked files (`--all`).
+- Reencrypt all tracked files with the public key recipients.
+- Encrypt all tracked files (`--all`) that are decrypted in the repository.
+- Untrack a file (and optionally delete from the file system).
+- Encrypt/decrypt in dry-run to validate (handy en CI for checking).
+
+Check the **Getting started** section for specific commands.
+
 ## Keys
 
 Agebox supports the same asymmetric keys [Age] does:
@@ -88,6 +111,8 @@ Agebox supports the same asymmetric keys [Age] does:
 - Ed25519 SSH.
 
 ### Public keys
+
+The public keys are the recipients of the encrypted files. With their respective private keys, users will be able to decrypt the files.
 
 Public keys should be on a directory relative to the root of the repository (by default `./keys`) at the moment of invoking encryption commands, this simplifies the usage of keys by not requiring pgp keys or agents.
 
@@ -100,6 +125,8 @@ In case you don't want to have all the public keys in all the repositories that 
 - Download public keys from S3.
 
 You can configure this with `--public-keys` flag or `AGEBOX_PUBLIC_KEYS` env var.
+
+You can have multiple public keys in a file (one per line), like [Age recipients file](https://github.com/FiloSottile/age/#recipient-files).
 
 ### Private keys
 
