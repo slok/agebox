@@ -3,6 +3,7 @@ package process_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -182,6 +183,53 @@ func TestTrackedState(t *testing.T) {
 			assert := assert.New(t)
 
 			p := process.NewTrackedState(test.trackedSecrets, test.ignoreMissing, log.Noop)
+			gotSecret, err := p.ProcessID(context.TODO(), test.secret)
+
+			if test.expErr {
+				assert.Error(err)
+			} else if assert.NoError(err) {
+				assert.Equal(test.expSecret, gotSecret)
+			}
+		})
+	}
+}
+
+func TestIncludeRegexMatch(t *testing.T) {
+	tests := map[string]struct {
+		regex     *regexp.Regexp
+		secret    string
+		expSecret string
+		expErr    bool
+	}{
+		"A nil regex should match everything.": {
+			secret:    "test1",
+			expSecret: "test1",
+		},
+
+		"A matching secret should be allowed (all).": {
+			regex:     regexp.MustCompile(".*"),
+			secret:    "test1",
+			expSecret: "test1",
+		},
+
+		"A matching secret should be allowed.": {
+			regex:     regexp.MustCompile("^test[0-9]$"),
+			secret:    "test2",
+			expSecret: "test2",
+		},
+
+		"A not matching secret should be ignored.": {
+			regex:     regexp.MustCompile("^notest[0-9]$"),
+			secret:    "test1",
+			expSecret: "",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+
+			p := process.NewIncludeRegexMatch(test.regex, log.Noop)
 			gotSecret, err := p.ProcessID(context.TODO(), test.secret)
 
 			if test.expErr {

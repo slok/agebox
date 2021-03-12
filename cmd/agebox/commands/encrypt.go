@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -21,6 +22,7 @@ type encryptCommand struct {
 	Files       []string
 	EncryptAll  bool
 	DryRun      bool
+	RegexFilter *regexp.Regexp
 }
 
 // NewEncryptCommand returns the encrypt command.
@@ -30,6 +32,7 @@ func NewEncryptCommand(app *kingpin.Application) Command {
 	cmd.Flag("public-keys", "Path to public keys.").Default("keys").Short('p').StringVar(&c.PubKeysPath)
 	cmd.Flag("all", "Encrypts all tracked files.").Short('a').BoolVar(&c.EncryptAll)
 	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored").BoolVar(&c.DryRun)
+	cmd.Flag("filter", "Encrypts only the filenames (without encrypted extension) that match the provided regex").Short('f').RegexpVar(&c.RegexFilter)
 	cmd.Arg("files", "Files to encrypt.").StringsVar(&c.Files)
 
 	return c
@@ -85,6 +88,7 @@ func (e encryptCommand) Run(ctx context.Context, config RootConfig) error {
 	secretIDProc := process.NewIDProcessorChain(
 		process.NewPathSanitizer(""),
 		process.NewIgnoreAlreadyProcessed(map[string]struct{}{}), // This should be after pathSanitizer.
+		process.NewIncludeRegexMatch(e.RegexFilter, logger),
 		process.NewEncryptionPathState(secretRepo, logger),
 	)
 
