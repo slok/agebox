@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -22,6 +23,7 @@ type decryptCommand struct {
 	DecryptAll     bool
 	Force          bool
 	DryRun         bool
+	RegexFilter    *regexp.Regexp
 }
 
 // NewDecryptCommand returns the decrypt command.
@@ -32,6 +34,7 @@ func NewDecryptCommand(app *kingpin.Application) Command {
 	cmd.Flag("all", "Decrypts all tracked files.").Short('a').BoolVar(&c.DecryptAll)
 	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored").BoolVar(&c.DryRun)
 	cmd.Flag("force", "Forces the decryption even if decrypted file exists").BoolVar(&c.Force)
+	cmd.Flag("filter", "Decrypts only the filenames (without encrypted extension) that match the provided regex").Short('f').RegexpVar(&c.RegexFilter)
 	cmd.Arg("files", "Files to decrypt.").StringsVar(&c.Files)
 
 	return c
@@ -79,6 +82,7 @@ func (d decryptCommand) Run(ctx context.Context, config RootConfig) error {
 	secretIDProc := process.NewIDProcessorChain(
 		process.NewPathSanitizer(""),
 		process.NewIgnoreAlreadyProcessed(map[string]struct{}{}), // This should be after pathSanitizer.
+		process.NewIncludeRegexMatch(d.RegexFilter, logger),
 		process.NewDecryptionPathState(d.Force, secretRepo, logger),
 	)
 

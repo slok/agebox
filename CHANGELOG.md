@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- `--filter` (`-f`) regex to include the matching secrets in `encrypt` cmd.
+- `--filter` (`-f`) regex to include the matching secrets in `decrypt` cmd.
+- `--filter` (`-f`) regex to include the matching secrets in `untrack` cmd.
+
 ## [v0.1.1] - 2021-03-11
 
 ### Added

@@ -50,10 +50,22 @@ Encrypt (and track) a directory in dry-run to see what would be encrypted before
 agebox encrypt ./secrets --dry-run
 ```
 
+Encrypt (and track) a directory and only (filter regex used) the `secret` named yaml files.
+
+```bash
+agebox encrypt ./manifests --filter ".*secret(\.yaml|\.yml)$"
+```
+
 Decrypt a subset of tracked secrets and a file.
 
 ```bash
 agebox decrypt ./secrets/team-1 ./secrets/secret1.yaml
+```
+
+Decrypt only (filter regex used) `team-a` tracked files.
+
+```bash
+agebox decrypt ./secrets --filter ".*team-a.*"
 ```
 
 Validate all tracked encrypted files exist and decryption is possible.

@@ -3,6 +3,7 @@ package process
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"sync"
 
 	"github.com/slok/agebox/internal/log"
@@ -98,5 +99,25 @@ func NewTrackedState(trackedSecretIDs map[string]struct{}, ignoreMissing bool, l
 		}
 
 		return "", fmt.Errorf("%q secret untracked", secretID)
+	})
+}
+
+// NewIncludeRegexMatch will ignore all the secrets that don't match the provided regex.
+// If the regex is nil it will match all (Noop).
+func NewIncludeRegexMatch(regex *regexp.Regexp, logger log.Logger) IDProcessor {
+	// Match all.
+	if regex == nil {
+		return NoopIDProcessor
+	}
+
+	return IDProcessorFunc(func(ctx context.Context, secretID string) (string, error) {
+		logger := logger.WithValues(log.Kv{"secret-id": secretID})
+
+		if regex.MatchString(secretID) {
+			return secretID, nil
+		}
+
+		logger.Debugf("secret ignored by regex unmatch")
+		return "", nil
 	})
 }

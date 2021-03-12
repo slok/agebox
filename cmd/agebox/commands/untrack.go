@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -15,9 +16,10 @@ import (
 )
 
 type untrackCommand struct {
-	Files  []string
-	Delete bool
-	DryRun bool
+	Files       []string
+	Delete      bool
+	DryRun      bool
+	RegexFilter *regexp.Regexp
 }
 
 // NewUntrackCommand returns the untrack command.
@@ -27,6 +29,7 @@ func NewUntrackCommand(app *kingpin.Application) Command {
 	cmd.Alias("rm")
 	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored").BoolVar(&c.DryRun)
 	cmd.Flag("delete", "Deletes the untracked files, encrypted or decrypted").BoolVar(&c.Delete)
+	cmd.Flag("filter", "Untracks only the filenames (without encrypted extension) that match the provided regex").Short('f').RegexpVar(&c.RegexFilter)
 	cmd.Arg("files", "Files to decrypt.").StringsVar(&c.Files)
 
 	return c
@@ -71,6 +74,7 @@ func (u untrackCommand) Run(ctx context.Context, config RootConfig) error {
 	secretIDProc := process.NewIDProcessorChain(
 		process.NewPathSanitizer(""),
 		process.NewIgnoreAlreadyProcessed(map[string]struct{}{}), // This should be after pathSanitizer.
+		process.NewIncludeRegexMatch(u.RegexFilter, logger),
 		process.NewTrackedState(tracked.EncryptedSecrets, true, logger),
 	)
 
