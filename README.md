@@ -74,10 +74,10 @@ Validate all tracked encrypted files exist and decryption is possible.
 agebox decrypt --all --dry-run --force --no-log
 ```
 
-Decrypt multiple encrypted files and print them to stdout.
+Cat multiple encrypted files and print them to stdout.
 
 ```bash
-agebox cat ./secrets/secret1.yaml ./secrets/secret2.json --no-log
+agebox cat ./secrets/secret1.yaml.agebox ./secrets/secret2.json.agebox --no-log
 ```
 
 Reencrypt all files.
@@ -170,7 +170,3 @@ Without [Age], [Agebox] would not exist.
 [blackbox]: https://github.com/StackExchange/blackbox
 [sops]: https://github.com/mozilla/sops
 [git-crypt]: https://github.com/AGWA/git-crypt
-
-```
-
-```
