@@ -4,6 +4,7 @@
 
 ### Added
 
+- `cat` cmd that decrypts and prints to stdout.
 - `--filter` (`-f`) regex to include the matching secrets in `encrypt` cmd.
 - `--filter` (`-f`) regex to include the matching secrets in `decrypt` cmd.
 - `--filter` (`-f`) regex to include the matching secrets in `untrack` cmd.

@@ -30,6 +30,7 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 	decryptCmd := commands.NewDecryptCommand(app)
 	reencryptCmd := commands.NewReencryptCommand(app)
 	untrackCmd := commands.NewUntrackCommand(app)
+	catCmd := commands.NewCatCommand(app)
 
 	cmds := map[string]commands.Command{
 		initCmd.Name():      initCmd,
@@ -37,6 +38,7 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 		decryptCmd.Name():   decryptCmd,
 		reencryptCmd.Name(): reencryptCmd,
 		untrackCmd.Name():   untrackCmd,
+		catCmd.Name():       catCmd,
 	}
 
 	// Parse commandline.
