@@ -145,7 +145,7 @@ func (s Service) CatBox(ctx context.Context, r CatBoxRequest) error {
 			return fmt.Errorf("could not decrypt all the provided secrets")
 		}
 
-		// Secret decrypted.
+		// Secret "cated".
 		logger.Infof("Secret decrypted and printed")
 	}
 

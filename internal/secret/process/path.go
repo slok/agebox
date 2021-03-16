@@ -29,7 +29,7 @@ func NewPathSanitizer(encryptExt string) IDProcessor {
 }
 
 // NewDecryptionPathState checks the state of the files on a decryption is correct.
-// the result is based on the different secret files status (decrypted and encrypted).
+// The result is based on the different secret files status (decrypted and encrypted).
 //
 // | opts             | Encrypted | Decrypted | Result |
 // |------------------|-----------|-----------|--------|
@@ -81,7 +81,7 @@ func NewDecryptionPathState(forceDecrypt bool, repo storage.SecretRepository, lo
 }
 
 // NewEncryptionPathState checks the state of the files on a encryption is correct.
-// the result is based on the different secret files status (decrypted and encrypted).
+// The result is based on the different secret files status (decrypted and encrypted).
 //
 // | opts | Encrypted | Decrypted | Result |
 // |------|-----------|-----------|--------|
@@ -118,6 +118,47 @@ func NewEncryptionPathState(repo storage.SecretRepository, logger log.Logger) ID
 		case !encOK && !decOK:
 			// Everything missing, error.
 			return "", fmt.Errorf("%q secret missing", secretID)
+		}
+
+		return "", fmt.Errorf("unknown secret state")
+	})
+}
+
+// NewEncryptedValidationPathState checks the state of the files on a encrypted validation
+// state is correct.
+// The result is based on the different secret files status (decrypted and encrypted).
+//
+// |        opts   | Encrypted | Decrypted | Result |
+// |---------------|-----------|-----------|--------|
+// | !forceDecrypt | Yes       | No        | Ignore |
+// | forceDecrypt  | Yes       | No        | Allow  |
+// |               | *         | Yes       | Error  |
+// |               | *         | No        | Error  |
+func NewEncryptedValidationPathState(forceDecrypt bool, repo storage.SecretRepository) IDProcessor {
+	return IDProcessorFunc(func(ctx context.Context, secretID string) (string, error) {
+		encOK, err := repo.ExistsEncryptedSecret(ctx, secretID)
+		if err != nil {
+			return "", fmt.Errorf("could not check decrypted secret exists: %w", err)
+		}
+
+		decOK, err := repo.ExistsDecryptedSecret(ctx, secretID)
+		if err != nil {
+			return "", fmt.Errorf("could not check decrypted secret exists: %w", err)
+		}
+
+		switch {
+		case decOK:
+			// Decrypted should error always.
+			return "", fmt.Errorf("%q secret decrypted", secretID)
+		case !encOK:
+			// Not encrypted should error always.
+			return "", fmt.Errorf("%q encrypted secret missing", secretID)
+		case encOK && !decOK && forceDecrypt:
+			// Encrypted secret should be allowed.
+			return secretID, nil
+		case encOK && !decOK && !forceDecrypt:
+			// Ignore encrypted secret.
+			return "", nil
 		}
 
 		return "", fmt.Errorf("unknown secret state")
