@@ -68,10 +68,16 @@ Decrypt only (filter regex used) `team-a` tracked files.
 agebox decrypt ./secrets --filter ".*team-a.*"
 ```
 
-Validate all tracked encrypted files exist and decryption is possible.
+Force decryption of all tracked files.
 
 ```bash
-agebox decrypt --all --dry-run --force --no-log
+agebox decrypt --all --force
+```
+
+Validate tracked secrets are encrypted and not decrypted (without decrypt validation).
+
+```bash
+validate --no-decrypt
 ```
 
 Cat multiple encrypted files and print them to stdout.
@@ -118,6 +124,7 @@ As a regular flow of agebox usage examples, you can:
 - Untrack a file (and optionally delete from the file system).
 - Encrypt/decrypt in dry-run to validate (handy en CI for checking).
 - Cat encrypted files to stdout.
+- Validate tracked files are encrypted and not decrypted (useful on CI, git hooks...).
 
 Check the **Getting started** section for specific commands.
 

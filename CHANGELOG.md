@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- `validate` cmd that validates tracked files.
+- `validate` cmd checks tracked secrets are not decrypted.
+- `validate` cmd checks tracked secrets are encrypted.
+- `validate` cmd optionally checks tracked secrets can be decrypted.
+
 ## [v0.2.0] - 2021-03-13
 
 ### Added

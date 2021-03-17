@@ -260,11 +260,10 @@ func TestEncryptionPathState(t *testing.T) {
 
 func TestEncryptedValidationPathState(t *testing.T) {
 	tests := map[string]struct {
-		forceDecrypt bool
-		mock         func(m *storagemock.SecretRepository)
-		secret       string
-		expSecret    string
-		expErr       bool
+		mock      func(m *storagemock.SecretRepository)
+		secret    string
+		expSecret string
+		expErr    bool
 	}{
 		"If checking an encrypted secret exists has an error we should fail.": {
 			mock: func(m *storagemock.SecretRepository) {
@@ -310,17 +309,7 @@ func TestEncryptedValidationPathState(t *testing.T) {
 			expErr: true,
 		},
 
-		"If not decrypted and encrypted is present and not forceIgnore it should allow.": {
-			mock: func(m *storagemock.SecretRepository) {
-				m.On("ExistsEncryptedSecret", mock.Anything, "test").Once().Return(true, nil)
-				m.On("ExistsDecryptedSecret", mock.Anything, "test").Once().Return(false, nil)
-			},
-			secret:    "test",
-			expSecret: "",
-		},
-
-		"If not decrypted and encrypted is present and forceIgnore it should allow.": {
-			forceDecrypt: true,
+		"If not decrypted and encrypted is present it should allow.": {
 			mock: func(m *storagemock.SecretRepository) {
 				m.On("ExistsEncryptedSecret", mock.Anything, "test").Once().Return(true, nil)
 				m.On("ExistsDecryptedSecret", mock.Anything, "test").Once().Return(false, nil)
@@ -338,7 +327,7 @@ func TestEncryptedValidationPathState(t *testing.T) {
 			mr := &storagemock.SecretRepository{}
 			test.mock(mr)
 
-			p := process.NewEncryptedValidationPathState(test.forceDecrypt, mr)
+			p := process.NewEncryptedValidationPathState(mr)
 			gotSecret, err := p.ProcessID(context.TODO(), test.secret)
 
 			if test.expErr {
