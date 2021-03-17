@@ -91,7 +91,7 @@ func (s Service) ValidateBox(ctx context.Context, r ValidateBoxRequest) error {
 		pSecret, err := s.secretIDProcessor.ProcessID(ctx, secretID)
 		if err != nil {
 			// We will try our best, if error, log and continue with next secrets.
-			logger.Errorf("invalid secret: %s", err)
+			logger.Errorf("Invalid secret: %s", err)
 			errored = true
 			continue
 		}
@@ -128,7 +128,7 @@ func (s Service) ValidateBox(ctx context.Context, r ValidateBoxRequest) error {
 		err := s.procesSecret(ctx, privKey, secretID)
 		if err != nil {
 			// We will try our best, if error, log and continue with next secrets.
-			logger.Errorf("invalid secret: %s", err)
+			logger.Errorf("Invalid secret: %s", err)
 			errored = true
 			continue
 		}
