@@ -1,4 +1,4 @@
-package decrypt
+package validate
 
 import (
 	"context"
@@ -40,13 +40,13 @@ func (c *ServiceConfig) defaults() error {
 	if c.Logger == nil {
 		c.Logger = log.Noop
 	}
-	c.Logger = c.Logger.WithValues(log.Kv{"svc": "box.decrypt.Service"})
+	c.Logger = c.Logger.WithValues(log.Kv{"svc": "box.validate.Service"})
 
 	return nil
 }
 
-// Service is the application service for the box decrypting logic.
-// The service knows how to decrypt and discover files to decrypt.
+// Service is the application service for the box validation logic.
+// The service knows how to check and decrypt.
 type Service struct {
 	keyRepo           storage.KeyRepository
 	secretRepo        storage.SecretRepository
@@ -71,22 +71,29 @@ func NewService(config ServiceConfig) (*Service, error) {
 	}, nil
 }
 
-// DecryptBoxRequest is the request to decrypt secrets.
-type DecryptBoxRequest struct {
+// ValidateBoxRequest is the request to validate secrets.
+type ValidateBoxRequest struct {
 	SecretIDs []string
+	Decrypt   bool
 }
 
-// DecryptBox will decrypt secrets.
-func (s Service) DecryptBox(ctx context.Context, r DecryptBoxRequest) error {
+// ValidateBox will validate secrets.
+func (s Service) ValidateBox(ctx context.Context, r ValidateBoxRequest) error {
 	if len(r.SecretIDs) == 0 {
 		return fmt.Errorf("0 secrets provided")
 	}
 
 	secretIDs := []string{}
-	for _, secret := range r.SecretIDs {
-		pSecret, err := s.secretIDProcessor.ProcessID(ctx, secret)
+	errored := false
+	for _, secretID := range r.SecretIDs {
+		logger := s.logger.WithValues(log.Kv{"secret-id": secretID})
+
+		pSecret, err := s.secretIDProcessor.ProcessID(ctx, secretID)
 		if err != nil {
-			return fmt.Errorf("invalid secret %q: %w", secret, err)
+			// We will try our best, if error, log and continue with next secrets.
+			logger.Errorf("invalid secret: %s", err)
+			errored = true
+			continue
 		}
 
 		// Ignore.
@@ -97,32 +104,38 @@ func (s Service) DecryptBox(ctx context.Context, r DecryptBoxRequest) error {
 		secretIDs = append(secretIDs, pSecret)
 	}
 
+	if errored {
+		return fmt.Errorf("validation process failed")
+	}
+
+	// If no decryption required just end here.
+	if !r.Decrypt {
+		return nil
+	}
+
 	// Load key.
 	privKey, err := s.keyRepo.GetPrivateKey(ctx)
 	if err != nil {
 		return fmt.Errorf("could not get private key: %w", err)
 	}
 
-	// Encrypt secrets.
+	// Validate secrets.
 	// TODO(slok): Make it concurrent.
-	errored := false
+	errored = false
 	for _, secretID := range secretIDs {
 		logger := s.logger.WithValues(log.Kv{"secret-id": secretID})
 
 		err := s.procesSecret(ctx, privKey, secretID)
 		if err != nil {
 			// We will try our best, if error, log and continue with next secrets.
-			logger.Errorf("Secret not decrypted: %s", err)
+			logger.Errorf("invalid secret: %s", err)
 			errored = true
 			continue
 		}
-
-		// Secret decrypted.
-		logger.Infof("Secret decrypted")
 	}
 
 	if errored {
-		return fmt.Errorf("could not decrypt all the provided secrets")
+		return fmt.Errorf("validation process failed")
 	}
 
 	return nil
@@ -134,14 +147,9 @@ func (s Service) procesSecret(ctx context.Context, key model.PrivateKey, secretI
 		return fmt.Errorf("could not retrieve secret: %w", err)
 	}
 
-	secret, err = s.encrypter.Decrypt(ctx, *secret, key)
+	_, err = s.encrypter.Decrypt(ctx, *secret, key)
 	if err != nil {
 		return fmt.Errorf("could not decrypt secret: %w", err)
-	}
-
-	err = s.secretRepo.SaveDecryptedSecret(ctx, *secret)
-	if err != nil {
-		return fmt.Errorf("could not store decrypted secret: %w", err)
 	}
 
 	return nil

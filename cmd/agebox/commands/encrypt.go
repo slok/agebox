@@ -31,7 +31,7 @@ func NewEncryptCommand(app *kingpin.Application) Command {
 	cmd := app.Command("encrypt", "Encrypts and tracks any number of files.")
 	cmd.Flag("public-keys", "Path to public keys.").Default("keys").Short('p').StringVar(&c.PubKeysPath)
 	cmd.Flag("all", "Encrypts all tracked files.").Short('a').BoolVar(&c.EncryptAll)
-	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored").BoolVar(&c.DryRun)
+	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored.").BoolVar(&c.DryRun)
 	cmd.Flag("filter", "Encrypts only the filenames (without encrypted extension) that match the provided regex").Short('f').RegexpVar(&c.RegexFilter)
 	cmd.Arg("files", "Files to encrypt.").StringsVar(&c.Files)
 

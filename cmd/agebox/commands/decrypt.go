@@ -32,9 +32,9 @@ func NewDecryptCommand(app *kingpin.Application) Command {
 	cmd := app.Command("decrypt", "Decrypts any number of tracked files.")
 	cmd.Flag("private-key", "Path to private key.").Required().Short('i').StringVar(&c.PrivateKeyPath)
 	cmd.Flag("all", "Decrypts all tracked files.").Short('a').BoolVar(&c.DecryptAll)
-	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored").BoolVar(&c.DryRun)
-	cmd.Flag("force", "Forces the decryption even if decrypted file exists").BoolVar(&c.Force)
-	cmd.Flag("filter", "Decrypts only the filenames (without encrypted extension) that match the provided regex").Short('f').RegexpVar(&c.RegexFilter)
+	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored.").BoolVar(&c.DryRun)
+	cmd.Flag("force", "Forces the decryption even if decrypted file exists.").BoolVar(&c.Force)
+	cmd.Flag("filter", "Decrypts only the filenames (without encrypted extension) that match the provided regex.").Short('f').RegexpVar(&c.RegexFilter)
 	cmd.Arg("files", "Files to decrypt.").StringsVar(&c.Files)
 
 	return c

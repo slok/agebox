@@ -27,9 +27,9 @@ func NewUntrackCommand(app *kingpin.Application) Command {
 	c := &untrackCommand{}
 	cmd := app.Command("untrack", "Untracks any number of tracked files.")
 	cmd.Alias("rm")
-	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored").BoolVar(&c.DryRun)
-	cmd.Flag("delete", "Deletes the untracked files, encrypted or decrypted").BoolVar(&c.Delete)
-	cmd.Flag("filter", "Untracks only the filenames (without encrypted extension) that match the provided regex").Short('f').RegexpVar(&c.RegexFilter)
+	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored.").BoolVar(&c.DryRun)
+	cmd.Flag("delete", "Deletes the untracked files, encrypted or decrypted.").BoolVar(&c.Delete)
+	cmd.Flag("filter", "Untracks only the filenames (without encrypted extension) that match the provided regex.").Short('f').RegexpVar(&c.RegexFilter)
 	cmd.Arg("files", "Files to decrypt.").StringsVar(&c.Files)
 
 	return c

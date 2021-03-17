@@ -128,13 +128,12 @@ func NewEncryptionPathState(repo storage.SecretRepository, logger log.Logger) ID
 // state is correct.
 // The result is based on the different secret files status (decrypted and encrypted).
 //
-// |        opts   | Encrypted | Decrypted | Result |
-// |---------------|-----------|-----------|--------|
-// | !forceDecrypt | Yes       | No        | Ignore |
-// | forceDecrypt  | Yes       | No        | Allow  |
-// |               | *         | Yes       | Error  |
-// |               | *         | No        | Error  |
-func NewEncryptedValidationPathState(forceDecrypt bool, repo storage.SecretRepository) IDProcessor {
+// | opts | Encrypted | Decrypted | Result |
+// |------|-----------|-----------|--------|
+// |      | Yes       | No        | Allow  |
+// |      | *         | Yes       | Error  |
+// |      | No        | *         | Error  |
+func NewEncryptedValidationPathState(repo storage.SecretRepository) IDProcessor {
 	return IDProcessorFunc(func(ctx context.Context, secretID string) (string, error) {
 		encOK, err := repo.ExistsEncryptedSecret(ctx, secretID)
 		if err != nil {
@@ -149,16 +148,13 @@ func NewEncryptedValidationPathState(forceDecrypt bool, repo storage.SecretRepos
 		switch {
 		case decOK:
 			// Decrypted should error always.
-			return "", fmt.Errorf("%q secret decrypted", secretID)
+			return "", fmt.Errorf("%q decrypted secret exists", secretID)
 		case !encOK:
 			// Not encrypted should error always.
 			return "", fmt.Errorf("%q encrypted secret missing", secretID)
-		case encOK && !decOK && forceDecrypt:
+		case encOK && !decOK:
 			// Encrypted secret should be allowed.
 			return secretID, nil
-		case encOK && !decOK && !forceDecrypt:
-			// Ignore encrypted secret.
-			return "", nil
 		}
 
 		return "", fmt.Errorf("unknown secret state")
