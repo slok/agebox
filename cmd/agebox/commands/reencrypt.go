@@ -3,6 +3,9 @@ package commands
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
+	"strings"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -17,6 +20,7 @@ import (
 type reencryptCommand struct {
 	PubKeysPath    string
 	PrivateKeyPath string
+	SSHPassphrase  string
 	DryRun         bool
 }
 
@@ -28,6 +32,7 @@ func NewReencryptCommand(app *kingpin.Application) Command {
 	cmd.Alias("update")
 	cmd.Flag("public-keys", "Path to public keys.").Default("keys").Short('p').StringVar(&c.PubKeysPath)
 	cmd.Flag("private-key", "Path to private key.").Required().Short('i').StringVar(&c.PrivateKeyPath)
+	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode.").StringVar(&c.SSHPassphrase)
 	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored.").BoolVar(&c.DryRun)
 
 	return c
@@ -50,10 +55,15 @@ func (r reencryptCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("could not create track repository: %w", err)
 	}
 
+	var passphraseR io.Reader = os.Stdin
+	if r.SSHPassphrase != "" {
+		passphraseR = strings.NewReader(r.SSHPassphrase)
+	}
+
 	keyRepo, err = storagefs.NewKeyRepository(storagefs.KeyRepositoryConfig{
 		PublicKeysPath: r.PubKeysPath,
 		PrivateKeyPath: r.PrivateKeyPath,
-		KeyFactory:     keyage.Factory,
+		KeyFactory:     keyage.NewFactory(passphraseR, logger),
 		Logger:         logger,
 	})
 	if err != nil {

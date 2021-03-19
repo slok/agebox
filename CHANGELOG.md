@@ -8,6 +8,8 @@
 - `validate` cmd checks tracked secrets are not decrypted.
 - `validate` cmd checks tracked secrets are encrypted.
 - `validate` cmd optionally checks tracked secrets can be decrypted.
+- Support for SSH passphrase using stdin.
+- Support for SSH passphrase using cmd `--passphrase` flag.
 
 ## [v0.2.0] - 2021-03-13
 

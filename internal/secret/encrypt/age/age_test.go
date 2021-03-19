@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	keyage "github.com/slok/agebox/internal/key/age"
+	"github.com/slok/agebox/internal/log"
 	"github.com/slok/agebox/internal/model"
 	encryptage "github.com/slok/agebox/internal/secret/encrypt/age"
 )
@@ -20,12 +21,12 @@ var (
 )
 
 func getAgePrivateKey(s string) model.PrivateKey {
-	k, _ := keyage.Factory.GetPrivateKey(context.TODO(), []byte(s))
+	k, _ := keyage.NewFactory(nil, log.Noop).GetPrivateKey(context.TODO(), []byte(s))
 	return k
 }
 
 func getAgePublicKey(s string) model.PublicKey {
-	k, _ := keyage.Factory.GetPublicKey(context.TODO(), []byte(s))
+	k, _ := keyage.NewFactory(nil, log.Noop).GetPublicKey(context.TODO(), []byte(s))
 	return k
 }
 

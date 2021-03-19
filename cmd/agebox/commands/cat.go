@@ -3,6 +3,9 @@ package commands
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
+	"strings"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -15,6 +18,7 @@ import (
 
 type catCommand struct {
 	PrivateKeyPath string
+	SSHPassphrase  string
 	Files          []string
 }
 
@@ -23,6 +27,7 @@ func NewCatCommand(app *kingpin.Application) Command {
 	c := &catCommand{}
 	cmd := app.Command("cat", "Decrypts any number of tracked files and prints them to stdout.")
 	cmd.Flag("private-key", "Path to private key.").Required().Short('i').StringVar(&c.PrivateKeyPath)
+	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode.").StringVar(&c.SSHPassphrase)
 	cmd.Arg("files", "Files to decrypt.").StringsVar(&c.Files)
 
 	return c
@@ -32,10 +37,15 @@ func (c catCommand) Name() string { return "cat" }
 func (c catCommand) Run(ctx context.Context, config RootConfig) error {
 	logger := config.Logger
 
+	var passphraseR io.Reader = os.Stdin
+	if c.SSHPassphrase != "" {
+		passphraseR = strings.NewReader(c.SSHPassphrase)
+	}
+
 	// Create repositories
 	keyRepo, err := storagefs.NewKeyRepository(storagefs.KeyRepositoryConfig{
 		PrivateKeyPath: c.PrivateKeyPath,
-		KeyFactory:     keyage.Factory,
+		KeyFactory:     keyage.NewFactory(passphraseR, logger),
 		Logger:         logger,
 	})
 	if err != nil {

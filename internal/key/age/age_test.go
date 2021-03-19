@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/slok/agebox/internal/key/age"
+	"github.com/slok/agebox/internal/log"
 )
 
 func TestKeyFactoryPublicKey(t *testing.T) {
@@ -44,7 +45,8 @@ func TestKeyFactoryPublicKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			assert := assert.New(t)
 
-			_, err := age.Factory.GetPublicKey(context.TODO(), []byte(test.key))
+			f := age.NewFactory(nil, log.Noop)
+			_, err := f.GetPublicKey(context.TODO(), []byte(test.key))
 
 			if test.expErr {
 				assert.Error(err)
@@ -130,13 +132,29 @@ X7X0kqjcv7OoD58jjZsyAAAADXNsb2tAbmF1dGlsdXM=
 			key:    `AGE-SECRET-KEY-1J2DCTK0T408RJK2KX5QM3RLT4MFXEZYGP327CNP347PKTQ22UYUQXJ3N4X`,
 			expErr: false,
 		},
+
+		"SSH key with passphrase.": {
+			// `test` passphrase.
+			key: `
+-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABAH2j4KRt
+kXuaMFXvv+orO8AAAAEAAAAAEAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIHdAfN6rU4tOpjOU
+dOxSJh0EJopkQYR6h5steO+6aigfAAAAkC6bk0RGsyZk5jv5gk2scZ7VlsT9FL1O3oS09J
+yB25M0buFWbQmp/XsuuZgg2iKwyu9/5dhmRpj1PSLGYXRNbf4duWKbSH4oxSsFPs1dFpsq
+ra3GQFKuCo5rQYJCQGbJ18YDUgNZXZqP9uz53AlXUaS+pH3YqHZhMTQ5uNsTKP0DfWTv3g
+kBvzR+ftEy9KmPtg==
+-----END OPENSSH PRIVATE KEY-----
+`,
+			expErr: false,
+		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			assert := assert.New(t)
 
-			_, err := age.Factory.GetPrivateKey(context.TODO(), []byte(test.key))
+			f := age.NewFactory(nil, log.Noop)
+			_, err := f.GetPrivateKey(context.TODO(), []byte(test.key))
 
 			if test.expErr {
 				assert.Error(err)
