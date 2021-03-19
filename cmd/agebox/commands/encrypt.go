@@ -62,7 +62,7 @@ func (e encryptCommand) Run(ctx context.Context, config RootConfig) error {
 
 	keyRepo, err = storagefs.NewKeyRepository(storagefs.KeyRepositoryConfig{
 		PublicKeysPath: e.PubKeysPath,
-		KeyFactory:     keyage.Factory,
+		KeyFactory:     keyage.NewFactory(config.Stdin, logger),
 		Logger:         logger,
 	})
 	if err != nil {

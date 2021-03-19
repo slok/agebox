@@ -3,8 +3,10 @@ package commands
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"regexp"
+	"strings"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -23,6 +25,7 @@ type decryptCommand struct {
 	DecryptAll     bool
 	Force          bool
 	DryRun         bool
+	SSHPassphrase  string
 	RegexFilter    *regexp.Regexp
 }
 
@@ -31,6 +34,7 @@ func NewDecryptCommand(app *kingpin.Application) Command {
 	c := &decryptCommand{}
 	cmd := app.Command("decrypt", "Decrypts any number of tracked files.")
 	cmd.Flag("private-key", "Path to private key.").Required().Short('i').StringVar(&c.PrivateKeyPath)
+	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode.").StringVar(&c.SSHPassphrase)
 	cmd.Flag("all", "Decrypts all tracked files.").Short('a').BoolVar(&c.DecryptAll)
 	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored.").BoolVar(&c.DryRun)
 	cmd.Flag("force", "Forces the decryption even if decrypted file exists.").BoolVar(&c.Force)
@@ -54,10 +58,15 @@ func (d decryptCommand) Run(ctx context.Context, config RootConfig) error {
 		secretRepo storage.SecretRepository
 	)
 
+	var passphraseR io.Reader = os.Stdin
+	if d.SSHPassphrase != "" {
+		passphraseR = strings.NewReader(d.SSHPassphrase)
+	}
+
 	// Create repositories
 	keyRepo, err := storagefs.NewKeyRepository(storagefs.KeyRepositoryConfig{
 		PrivateKeyPath: d.PrivateKeyPath,
-		KeyFactory:     keyage.Factory,
+		KeyFactory:     keyage.NewFactory(passphraseR, logger),
 		Logger:         logger,
 	})
 	if err != nil {

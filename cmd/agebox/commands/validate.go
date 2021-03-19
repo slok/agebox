@@ -3,6 +3,9 @@ package commands
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
+	"strings"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -15,6 +18,7 @@ import (
 
 type validateCommand struct {
 	PrivateKeyPath string
+	SSHPassphrase  string
 	NoDecrypt      bool
 }
 
@@ -24,6 +28,7 @@ func NewValidateCommand(app *kingpin.Application) Command {
 	cmd := app.Command("validate", "Validates the files are in correct state (e.g encrypted and not decrypted).")
 	cmd.Alias("check")
 	cmd.Flag("private-key", "Path to private key.").Short('i').StringVar(&c.PrivateKeyPath)
+	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode.").StringVar(&c.SSHPassphrase)
 	cmd.Flag("no-decrypt", "Doesn't decrypt the tracked files.").BoolVar(&c.NoDecrypt)
 
 	return c
@@ -38,10 +43,15 @@ func (v validateCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("a private key is required to decrypt")
 	}
 
+	var passphraseR io.Reader = os.Stdin
+	if v.SSHPassphrase != "" {
+		passphraseR = strings.NewReader(v.SSHPassphrase)
+	}
+
 	// Create repositories.
 	keyRepo, err := storagefs.NewKeyRepository(storagefs.KeyRepositoryConfig{
 		PrivateKeyPath: v.PrivateKeyPath,
-		KeyFactory:     keyage.Factory,
+		KeyFactory:     keyage.NewFactory(passphraseR, logger),
 		Logger:         logger,
 	})
 	if err != nil {
