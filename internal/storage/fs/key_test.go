@@ -165,6 +165,47 @@ func TestGetPublicKey(t *testing.T) {
 			}},
 		},
 
+		"Having valid and invalid keys, should ignore the invalid ones.": {
+			config: storagefs.KeyRepositoryConfig{
+				PublicKeysPath: "test/keys",
+			},
+			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
+				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(nil).Run(func(args mock.Arguments) {
+					fn := args.Get(2).(fs.WalkDirFunc)
+
+					// Mock 3 public key.
+					_ = fn("test/keys/key1.pub", testFile{
+						name: "test/keys/key1.pub",
+						f:    &fstest.MapFile{Data: []byte("key1data")},
+					}, nil)
+
+					_ = fn("test/keys/key2.pub", testFile{
+						name: "test/keys/key2.pub",
+						f:    &fstest.MapFile{Data: []byte("key2data")},
+					}, nil)
+
+					_ = fn("test/keys/key3.pub", testFile{
+						name: "test/keys/key3.pub",
+						f:    &fstest.MapFile{Data: []byte("key3data")},
+					}, nil)
+				})
+
+				mr.On("ReadFile", mock.Anything, "test/keys/key1.pub").Once().Return([]byte("key1data"), nil)
+				mf.On("GetPublicKey", mock.Anything, []byte("key1data")).Once().Return(testKey("key1"), nil)
+
+				// Invalid key.
+				mr.On("ReadFile", mock.Anything, "test/keys/key2.pub").Once().Return([]byte("key2data"), nil)
+				mf.On("GetPublicKey", mock.Anything, []byte("key2data")).Once().Return(nil, fmt.Errorf("something"))
+
+				mr.On("ReadFile", mock.Anything, "test/keys/key3.pub").Once().Return([]byte("key3data"), nil)
+				mf.On("GetPublicKey", mock.Anything, []byte("key3data")).Once().Return(testKey("key3"), nil)
+			},
+			expKeyList: storage.PublicKeyList{Items: []model.PublicKey{
+				testKey("key1"),
+				testKey("key3"),
+			}},
+		},
+
 		"Having an error while loading a key should fail.": {
 			config: storagefs.KeyRepositoryConfig{
 				PublicKeysPath: "test/keys",
