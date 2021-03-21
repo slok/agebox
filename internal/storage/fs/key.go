@@ -94,7 +94,9 @@ func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyLi
 		for _, data := range dataLines {
 			key, err := k.keyFactory.GetPublicKey(ctx, data)
 			if err != nil {
-				return fmt.Errorf("could not load public key in %q: %w", path, err)
+				// If we can't load a key, don't fail, we try our best.
+				k.logger.WithValues(log.Kv{"key": path}).Warningf("could not load public key: %s", err)
+				continue
 			}
 
 			keys = append(keys, key)

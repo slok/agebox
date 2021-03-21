@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- When loading public keys, invalid ones will be ignored instead of failing.
+
 ## [v0.3.0] - 2021-03-19
 
 ### Added
