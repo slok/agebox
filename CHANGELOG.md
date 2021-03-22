@@ -5,6 +5,7 @@
 ### Changed
 
 - When loading public keys, invalid ones will be ignored instead of failing.
+- Fail if we have more than 20 recipients on encryption (due to Age decrypt limit).
 
 ## [v0.3.0] - 2021-03-19
 
