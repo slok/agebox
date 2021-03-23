@@ -86,6 +86,10 @@ func (d dryRunKeyRepository) ListPublicKeys(ctx context.Context) (*PublicKeyList
 	return d.repo.ListPublicKeys(ctx)
 }
 
+func (d dryRunKeyRepository) ListPrivateKeys(ctx context.Context) (*PrivateKeyList, error) {
+	return d.repo.ListPrivateKeys(ctx)
+}
+
 func (d dryRunKeyRepository) GetPrivateKey(ctx context.Context) (model.PrivateKey, error) {
 	return d.repo.GetPrivateKey(ctx)
 }
