@@ -11,9 +11,15 @@ type PublicKeyList struct {
 	Items []model.PublicKey
 }
 
+// PrivateKeyList is a list of private keys.
+type PrivateKeyList struct {
+	Items []model.PrivateKey
+}
+
 // KeyRepository knows how to deal with stored keys.
 type KeyRepository interface {
 	ListPublicKeys(ctx context.Context) (*PublicKeyList, error)
+	ListPrivateKeys(ctx context.Context) (*PrivateKeyList, error)
 	GetPrivateKey(ctx context.Context) (model.PrivateKey, error)
 }
 

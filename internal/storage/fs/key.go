@@ -75,6 +75,7 @@ func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyLi
 		if err != nil {
 			return err
 		}
+
 		if d.IsDir() {
 			return nil
 		}
@@ -82,7 +83,7 @@ func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyLi
 		// Read key file.
 		data, err := k.fileManager.ReadFile(ctx, path)
 		if err != nil {
-			return fmt.Errorf("could not load public key %q data from file: %w", path, err)
+			return fmt.Errorf("could not read public key %q data from file: %w", path, err)
 		}
 
 		// Just in case we have multiple keys in the file (one per line).
@@ -111,6 +112,45 @@ func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyLi
 	k.logger.WithValues(log.Kv{"keys": len(keys)}).Infof("Loaded public keys")
 
 	return &storage.PublicKeyList{Items: keys}, nil
+}
+
+func (k keyRepository) ListPrivateKeys(ctx context.Context) (*storage.PrivateKeyList, error) {
+	keys := []model.PrivateKey{}
+	err := k.fileManager.WalkDir(ctx, k.privateKeyPath, fs.WalkDirFunc(func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		// TODO(slok): Think if we need to ignore .pub files.
+
+		// Read key file.
+		data, err := k.fileManager.ReadFile(ctx, path)
+		if err != nil {
+			return fmt.Errorf("could not read private key %q data from file: %w", path, err)
+		}
+
+		key, err := k.keyFactory.GetPrivateKey(ctx, data)
+		if err != nil {
+			// If we can't load a key, don't fail, we try our best.
+			k.logger.WithValues(log.Kv{"key": path}).Warningf("could not load private key: %s", err)
+			return nil
+		}
+
+		keys = append(keys, key)
+
+		return nil
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	k.logger.WithValues(log.Kv{"keys": len(keys)}).Infof("Loaded private keys")
+
+	return &storage.PrivateKeyList{Items: keys}, nil
 }
 
 func (k keyRepository) GetPrivateKey(ctx context.Context) (model.PrivateKey, error) {
