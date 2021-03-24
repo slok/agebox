@@ -18,10 +18,11 @@ import (
 )
 
 type reencryptCommand struct {
-	PubKeysPath    string
-	PrivateKeyPath string
-	SSHPassphrase  string
-	DryRun         bool
+	PubKeysPath              string
+	DeprecatedPrivateKeyPath string
+	PrivateKeysPath          string
+	SSHPassphrase            string
+	DryRun                   bool
 }
 
 // NewReencryptCommand returns the reencrypt command.
@@ -31,7 +32,8 @@ func NewReencryptCommand(app *kingpin.Application) Command {
 	cmd.Alias("recrypt")
 	cmd.Alias("update")
 	cmd.Flag("public-keys", "Path to public keys.").Default("keys").Short('p').StringVar(&c.PubKeysPath)
-	cmd.Flag("private-key", "Path to private key.").Required().Short('i').StringVar(&c.PrivateKeyPath)
+	cmd.Flag("private-key", "DEPRECATED: Use --private-keys.").StringVar(&c.DeprecatedPrivateKeyPath)
+	cmd.Flag("private-keys", "Path to private key(s).").Default(defaultSSHDir).Short('i').StringVar(&c.PrivateKeysPath)
 	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode.").StringVar(&c.SSHPassphrase)
 	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored.").BoolVar(&c.DryRun)
 
@@ -41,6 +43,16 @@ func NewReencryptCommand(app *kingpin.Application) Command {
 func (r reencryptCommand) Name() string { return "reencrypt" }
 func (r reencryptCommand) Run(ctx context.Context, config RootConfig) error {
 	logger := config.Logger
+
+	// Get private key and allow deprecated key flag.
+	privateKeysPath := r.PrivateKeysPath
+	if r.DeprecatedPrivateKeyPath != "" {
+		logger.Warningf("--private-key flag is deprecated, use --private-keys")
+		privateKeysPath = r.DeprecatedPrivateKeyPath
+	}
+	if privateKeysPath == "" {
+		return fmt.Errorf("private key is required")
+	}
 
 	var (
 		trackRepo  storage.TrackRepository
@@ -61,10 +73,10 @@ func (r reencryptCommand) Run(ctx context.Context, config RootConfig) error {
 	}
 
 	keyRepo, err = storagefs.NewKeyRepository(storagefs.KeyRepositoryConfig{
-		PublicKeysPath: r.PubKeysPath,
-		PrivateKeyPath: r.PrivateKeyPath,
-		KeyFactory:     keyage.NewFactory(passphraseR, logger),
-		Logger:         logger,
+		PublicKeysPath:  r.PubKeysPath,
+		PrivateKeysPath: privateKeysPath,
+		KeyFactory:      keyage.NewFactory(passphraseR, logger),
+		Logger:          logger,
 	})
 	if err != nil {
 		return fmt.Errorf("could not create key repository: %w", err)

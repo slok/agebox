@@ -20,20 +20,22 @@ import (
 )
 
 type decryptCommand struct {
-	PrivateKeyPath string
-	Files          []string
-	DecryptAll     bool
-	Force          bool
-	DryRun         bool
-	SSHPassphrase  string
-	RegexFilter    *regexp.Regexp
+	DeprecatedPrivateKeyPath string
+	PrivateKeysPath          string
+	Files                    []string
+	DecryptAll               bool
+	Force                    bool
+	DryRun                   bool
+	SSHPassphrase            string
+	RegexFilter              *regexp.Regexp
 }
 
 // NewDecryptCommand returns the decrypt command.
 func NewDecryptCommand(app *kingpin.Application) Command {
 	c := &decryptCommand{}
 	cmd := app.Command("decrypt", "Decrypts any number of tracked files.")
-	cmd.Flag("private-key", "Path to private key.").Required().Short('i').StringVar(&c.PrivateKeyPath)
+	cmd.Flag("private-key", "DEPRECATED: Use --private-keys.").StringVar(&c.DeprecatedPrivateKeyPath)
+	cmd.Flag("private-keys", "Path to private key(s).").Default(defaultSSHDir).Short('i').StringVar(&c.PrivateKeysPath)
 	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode.").StringVar(&c.SSHPassphrase)
 	cmd.Flag("all", "Decrypts all tracked files.").Short('a').BoolVar(&c.DecryptAll)
 	cmd.Flag("dry-run", "Enables dry run mode, write operations will be ignored.").BoolVar(&c.DryRun)
@@ -47,6 +49,16 @@ func NewDecryptCommand(app *kingpin.Application) Command {
 func (d decryptCommand) Name() string { return "decrypt" }
 func (d decryptCommand) Run(ctx context.Context, config RootConfig) error {
 	logger := config.Logger
+
+	// Get private key and allow deprecated key flag.
+	privateKeysPath := d.PrivateKeysPath
+	if d.DeprecatedPrivateKeyPath != "" {
+		logger.Warningf("--private-key flag is deprecated, use --private-keys")
+		privateKeysPath = d.DeprecatedPrivateKeyPath
+	}
+	if privateKeysPath == "" {
+		return fmt.Errorf("private key is required")
+	}
 
 	// If we try decrypting all files we can't specify files.
 	if d.DecryptAll && len(d.Files) > 0 {
@@ -65,9 +77,9 @@ func (d decryptCommand) Run(ctx context.Context, config RootConfig) error {
 
 	// Create repositories
 	keyRepo, err := storagefs.NewKeyRepository(storagefs.KeyRepositoryConfig{
-		PrivateKeyPath: d.PrivateKeyPath,
-		KeyFactory:     keyage.NewFactory(passphraseR, logger),
-		Logger:         logger,
+		PrivateKeysPath: privateKeysPath,
+		KeyFactory:      keyage.NewFactory(passphraseR, logger),
+		Logger:          logger,
 	})
 	if err != nil {
 		return fmt.Errorf("could not create key repository: %w", err)

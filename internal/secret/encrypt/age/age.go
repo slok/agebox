@@ -72,24 +72,29 @@ func (encrypter) Encrypt(ctx context.Context, secret model.Secret, keys []model.
 
 	return &secret, nil
 }
-func (encrypter) Decrypt(ctx context.Context, secret model.Secret, key model.PrivateKey) (*model.Secret, error) {
+func (encrypter) Decrypt(ctx context.Context, secret model.Secret, keys []model.PrivateKey) (*model.Secret, error) {
 	if secret.EncryptedData == nil {
 		return nil, internalerrors.ErrNotEncrypted
 	}
 
-	// Get age compatible key.
-	var aKey keyage.PrivateKey
-	switch v := key.(type) {
-	case *keyage.PrivateKey:
-		aKey = *v
-	case keyage.PrivateKey:
-		aKey = v
-	default:
-		return nil, fmt.Errorf("invalid private key: %w", internalerrors.ErrNotAgeKey)
+	ageIdentities := make([]age.Identity, 0, len(keys))
+	for _, k := range keys {
+		// Get age compatible key.
+		var aKey keyage.PrivateKey
+		switch v := k.(type) {
+		case *keyage.PrivateKey:
+			aKey = *v
+		case keyage.PrivateKey:
+			aKey = v
+		default:
+			return nil, fmt.Errorf("invalid private key: %w", internalerrors.ErrNotAgeKey)
+		}
+
+		ageIdentities = append(ageIdentities, aKey.AgeIdentity())
 	}
 
 	// Decrypt data.
-	r, err := age.Decrypt(bytes.NewReader(secret.EncryptedData), aKey.AgeIdentity())
+	r, err := age.Decrypt(bytes.NewReader(secret.EncryptedData), ageIdentities...)
 	if err != nil {
 		return nil, fmt.Errorf("age could not decrypt the secret: %w", err)
 	}

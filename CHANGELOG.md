@@ -2,10 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+
+- Private key discovery in a directory.
+
 ### Changed
 
 - When loading public keys, invalid ones will be ignored instead of failing.
 - Fail if we have more than 20 recipients on encryption (due to Age decrypt limit).
+- --private-key flag has been deprecated in favor of --private-keys.
+- By default private keys will try to be loaded from `$HOME/.ssh` dir.
+- Use multiple private keys to decrypt, if any of them is able to decrypt it will do it.
 
 ## [v0.3.0] - 2021-03-19
 

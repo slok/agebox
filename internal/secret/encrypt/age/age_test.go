@@ -33,7 +33,7 @@ func getAgePublicKey(s string) model.PublicKey {
 func TestEncrypter(t *testing.T) {
 	tests := map[string]struct {
 		publicKeys    []model.PublicKey
-		privateKey    model.PrivateKey
+		privateKeys   []model.PrivateKey
 		secret        model.Secret
 		expSecret     model.Secret
 		expEncryptErr bool
@@ -78,16 +78,24 @@ func TestEncrypter(t *testing.T) {
 		},
 
 		"Encrypt/decryption should work if the private and public keys are compatible.": {
-			publicKeys: []model.PublicKey{publicKey1},
-			privateKey: privateKey1,
+			publicKeys:  []model.PublicKey{publicKey1},
+			privateKeys: []model.PrivateKey{privateKey1},
 			secret: model.Secret{
 				DecryptedData: []byte("this is a test secret"),
 			},
 		},
 
 		"Encrypt/decryption should work if the private and public keys are compatible (multiple public keys).": {
-			publicKeys: []model.PublicKey{publicKey1, publicKey2},
-			privateKey: privateKey2,
+			publicKeys:  []model.PublicKey{publicKey1, publicKey2},
+			privateKeys: []model.PrivateKey{privateKey2},
+			secret: model.Secret{
+				DecryptedData: []byte("this is a test secret"),
+			},
+		},
+
+		"Encrypt/decryption should work if the private and public keys are compatible (multiple private keys).": {
+			publicKeys:  []model.PublicKey{publicKey2},
+			privateKeys: []model.PrivateKey{privateKey1, privateKey2},
 			secret: model.Secret{
 				DecryptedData: []byte("this is a test secret"),
 			},
@@ -112,7 +120,7 @@ func TestEncrypter(t *testing.T) {
 			secret := model.Secret{
 				EncryptedData: tmpSecret.EncryptedData,
 			}
-			gotSecret, err := encryptage.Encrypter.Decrypt(context.TODO(), secret, test.privateKey)
+			gotSecret, err := encryptage.Encrypter.Decrypt(context.TODO(), secret, test.privateKeys)
 			if test.expDecryptErr {
 				require.Error(err)
 				return

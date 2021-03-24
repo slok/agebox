@@ -42,7 +42,7 @@ func TestGetPrivateKey(t *testing.T) {
 	}{
 		"Missing private key should fail.": {
 			config: storagefs.KeyRepositoryConfig{
-				PrivateKeyPath: "test/key1",
+				PrivateKeysPath: "test/key1",
 			},
 			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
 				mr.On("ReadFile", mock.Anything, "test/key1").Once().Return(nil, fmt.Errorf("something"))
@@ -52,7 +52,7 @@ func TestGetPrivateKey(t *testing.T) {
 
 		"Loading an existing key should load the key.": {
 			config: storagefs.KeyRepositoryConfig{
-				PrivateKeyPath: "test/key1",
+				PrivateKeysPath: "test/key1",
 			},
 			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
 				mr.On("ReadFile", mock.Anything, "test/key1").Once().Return([]byte("key1data"), nil)
@@ -63,7 +63,7 @@ func TestGetPrivateKey(t *testing.T) {
 
 		"Loading an existing key error should fail.": {
 			config: storagefs.KeyRepositoryConfig{
-				PrivateKeyPath: "test/key1",
+				PrivateKeysPath: "test/key1",
 			},
 			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
 				mr.On("ReadFile", mock.Anything, "test/key1").Once().Return([]byte("key1data"), nil)
@@ -283,7 +283,7 @@ func TestListPrivateKeys(t *testing.T) {
 	}{
 		"Not having any private key should not fail.": {
 			config: storagefs.KeyRepositoryConfig{
-				PrivateKeyPath: "test/keys",
+				PrivateKeysPath: "test/keys",
 			},
 			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
 				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(nil)
@@ -293,7 +293,7 @@ func TestListPrivateKeys(t *testing.T) {
 
 		"Having a single key at root should load the key.": {
 			config: storagefs.KeyRepositoryConfig{
-				PrivateKeyPath: "test/keys",
+				PrivateKeysPath: "test/keys",
 			},
 			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
 				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(nil).Run(func(args mock.Arguments) {
@@ -316,7 +316,7 @@ func TestListPrivateKeys(t *testing.T) {
 
 		"Having valid and invalid keys, should ignore the invalid ones.": {
 			config: storagefs.KeyRepositoryConfig{
-				PrivateKeyPath: "test/keys",
+				PrivateKeysPath: "test/keys",
 			},
 			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
 				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(nil).Run(func(args mock.Arguments) {
@@ -357,7 +357,7 @@ func TestListPrivateKeys(t *testing.T) {
 
 		"Having an error while loading a key should fail.": {
 			config: storagefs.KeyRepositoryConfig{
-				PrivateKeyPath: "test/keys",
+				PrivateKeysPath: "test/keys",
 			},
 			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
 				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(fmt.Errorf("something"))
@@ -367,7 +367,7 @@ func TestListPrivateKeys(t *testing.T) {
 
 		"Having multiple keys at root should load the keys.": {
 			config: storagefs.KeyRepositoryConfig{
-				PrivateKeyPath: "test/keys",
+				PrivateKeysPath: "test/keys",
 			},
 			mock: func(mr *fsmock.FileManager, mf *keymock.Factory) {
 				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(nil).Run(func(args mock.Arguments) {
