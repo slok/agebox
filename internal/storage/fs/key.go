@@ -15,20 +15,20 @@ import (
 )
 
 type keyRepository struct {
-	publicKeysPath string
-	privateKeyPath string
-	keyFactory     key.Factory
-	fileManager    FileManager
-	logger         log.Logger
+	publicKeysPath  string
+	privateKeysPath string
+	keyFactory      key.Factory
+	fileManager     FileManager
+	logger          log.Logger
 }
 
 // KeyRepositoryConfig is the configuration of the key repository.
 type KeyRepositoryConfig struct {
-	PublicKeysPath string
-	PrivateKeyPath string
-	KeyFactory     key.Factory
-	FileManager    FileManager
-	Logger         log.Logger
+	PublicKeysPath  string
+	PrivateKeysPath string
+	KeyFactory      key.Factory
+	FileManager     FileManager
+	Logger          log.Logger
 }
 
 func (c *KeyRepositoryConfig) defaults() error {
@@ -37,7 +37,7 @@ func (c *KeyRepositoryConfig) defaults() error {
 	}
 
 	c.PublicKeysPath = filepath.Clean(c.PublicKeysPath)
-	c.PrivateKeyPath = filepath.Clean(c.PrivateKeyPath)
+	c.PrivateKeysPath = filepath.Clean(c.PrivateKeysPath)
 
 	if c.FileManager == nil {
 		c.FileManager = defaultFileManager
@@ -61,11 +61,11 @@ func NewKeyRepository(config KeyRepositoryConfig) (storage.KeyRepository, error)
 	}
 
 	return &keyRepository{
-		publicKeysPath: config.PublicKeysPath,
-		privateKeyPath: config.PrivateKeyPath,
-		keyFactory:     config.KeyFactory,
-		fileManager:    config.FileManager,
-		logger:         config.Logger,
+		publicKeysPath:  config.PublicKeysPath,
+		privateKeysPath: config.PrivateKeysPath,
+		keyFactory:      config.KeyFactory,
+		fileManager:     config.FileManager,
+		logger:          config.Logger,
 	}, nil
 }
 
@@ -116,7 +116,7 @@ func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyLi
 
 func (k keyRepository) ListPrivateKeys(ctx context.Context) (*storage.PrivateKeyList, error) {
 	keys := []model.PrivateKey{}
-	err := k.fileManager.WalkDir(ctx, k.privateKeyPath, fs.WalkDirFunc(func(path string, d fs.DirEntry, err error) error {
+	err := k.fileManager.WalkDir(ctx, k.privateKeysPath, fs.WalkDirFunc(func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -154,14 +154,14 @@ func (k keyRepository) ListPrivateKeys(ctx context.Context) (*storage.PrivateKey
 }
 
 func (k keyRepository) GetPrivateKey(ctx context.Context) (model.PrivateKey, error) {
-	data, err := k.fileManager.ReadFile(ctx, k.privateKeyPath)
+	data, err := k.fileManager.ReadFile(ctx, k.privateKeysPath)
 	if err != nil {
-		return nil, fmt.Errorf("could not load private key %q data from file: %w", k.privateKeyPath, err)
+		return nil, fmt.Errorf("could not load private key %q data from file: %w", k.privateKeysPath, err)
 	}
 
 	key, err := k.keyFactory.GetPrivateKey(ctx, data)
 	if err != nil {
-		return nil, fmt.Errorf("could not load private key in %q: %w", k.privateKeyPath, err)
+		return nil, fmt.Errorf("could not load private key in %q: %w", k.privateKeysPath, err)
 	}
 
 	k.logger.Infof("Loaded private key")

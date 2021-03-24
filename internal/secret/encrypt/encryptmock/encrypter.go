@@ -15,13 +15,13 @@ type Encrypter struct {
 	mock.Mock
 }
 
-// Decrypt provides a mock function with given fields: ctx, secret, key
-func (_m *Encrypter) Decrypt(ctx context.Context, secret model.Secret, key model.PrivateKey) (*model.Secret, error) {
-	ret := _m.Called(ctx, secret, key)
+// Decrypt provides a mock function with given fields: ctx, secret, keys
+func (_m *Encrypter) Decrypt(ctx context.Context, secret model.Secret, keys []model.PrivateKey) (*model.Secret, error) {
+	ret := _m.Called(ctx, secret, keys)
 
 	var r0 *model.Secret
-	if rf, ok := ret.Get(0).(func(context.Context, model.Secret, model.PrivateKey) *model.Secret); ok {
-		r0 = rf(ctx, secret, key)
+	if rf, ok := ret.Get(0).(func(context.Context, model.Secret, []model.PrivateKey) *model.Secret); ok {
+		r0 = rf(ctx, secret, keys)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Secret)
@@ -29,8 +29,8 @@ func (_m *Encrypter) Decrypt(ctx context.Context, secret model.Secret, key model
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, model.Secret, model.PrivateKey) error); ok {
-		r1 = rf(ctx, secret, key)
+	if rf, ok := ret.Get(1).(func(context.Context, model.Secret, []model.PrivateKey) error); ok {
+		r1 = rf(ctx, secret, keys)
 	} else {
 		r1 = ret.Error(1)
 	}

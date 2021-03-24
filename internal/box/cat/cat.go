@@ -131,7 +131,7 @@ func (s Service) CatBox(ctx context.Context, r CatBoxRequest) error {
 	}
 
 	// Load key.
-	privKey, err := s.keyRepo.GetPrivateKey(ctx)
+	privKeys, err := s.keyRepo.ListPrivateKeys(ctx)
 	if err != nil {
 		return fmt.Errorf("could not get private key: %w", err)
 	}
@@ -140,7 +140,7 @@ func (s Service) CatBox(ctx context.Context, r CatBoxRequest) error {
 	for _, secretID := range secretIDs {
 		logger := s.logger.WithValues(log.Kv{"secret-id": secretID})
 
-		err := s.procesSecret(ctx, logger, privKey, secretID)
+		err := s.procesSecret(ctx, logger, privKeys.Items, secretID)
 		if err != nil {
 			return fmt.Errorf("could not decrypt all the provided secrets")
 		}
@@ -152,7 +152,7 @@ func (s Service) CatBox(ctx context.Context, r CatBoxRequest) error {
 	return nil
 }
 
-func (s Service) procesSecret(ctx context.Context, logger log.Logger, key model.PrivateKey, secretID string) error {
+func (s Service) procesSecret(ctx context.Context, logger log.Logger, keys []model.PrivateKey, secretID string) error {
 	exists, err := s.secretRepo.ExistsEncryptedSecret(ctx, secretID)
 	if err != nil {
 		return fmt.Errorf("could not check if the encrypted secret exists: %w", err)
@@ -167,7 +167,7 @@ func (s Service) procesSecret(ctx context.Context, logger log.Logger, key model.
 			return fmt.Errorf("could not retrieve secret: %w", err)
 		}
 
-		secret, err = s.encrypter.Decrypt(ctx, *secret, key)
+		secret, err = s.encrypter.Decrypt(ctx, *secret, keys)
 		if err != nil {
 			return fmt.Errorf("could not decrypt secret: %w", err)
 		}

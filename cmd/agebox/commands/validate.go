@@ -17,9 +17,10 @@ import (
 )
 
 type validateCommand struct {
-	PrivateKeyPath string
-	SSHPassphrase  string
-	NoDecrypt      bool
+	DeprecatedPrivateKeyPath string
+	PrivateKeysPath          string
+	SSHPassphrase            string
+	NoDecrypt                bool
 }
 
 // NewValidateCommand returns the validate command.
@@ -27,7 +28,8 @@ func NewValidateCommand(app *kingpin.Application) Command {
 	c := &validateCommand{}
 	cmd := app.Command("validate", "Validates the files are in correct state (e.g encrypted and not decrypted).")
 	cmd.Alias("check")
-	cmd.Flag("private-key", "Path to private key.").Short('i').StringVar(&c.PrivateKeyPath)
+	cmd.Flag("private-key", "DEPRECATED: Use --private-keys.").StringVar(&c.DeprecatedPrivateKeyPath)
+	cmd.Flag("private-keys", "Path to private key(s).").Default(defaultSSHDir).Short('i').StringVar(&c.PrivateKeysPath)
 	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode.").StringVar(&c.SSHPassphrase)
 	cmd.Flag("no-decrypt", "Doesn't decrypt the tracked files.").BoolVar(&c.NoDecrypt)
 
@@ -38,9 +40,16 @@ func (v validateCommand) Name() string { return "validate" }
 func (v validateCommand) Run(ctx context.Context, config RootConfig) error {
 	logger := config.Logger
 
-	// If decrypting is required we need a private key.
-	if !v.NoDecrypt && v.PrivateKeyPath == "" {
-		return fmt.Errorf("a private key is required to decrypt")
+	// If decrypting is required get private key and allow deprecated key flag.
+	privateKeysPath := v.PrivateKeysPath
+	if !v.NoDecrypt {
+		if v.DeprecatedPrivateKeyPath != "" {
+			logger.Warningf("--private-key flag is deprecated, use --private-keys")
+			privateKeysPath = v.DeprecatedPrivateKeyPath
+		}
+		if privateKeysPath == "" {
+			return fmt.Errorf("private key is required")
+		}
 	}
 
 	var passphraseR io.Reader = os.Stdin
@@ -50,9 +59,9 @@ func (v validateCommand) Run(ctx context.Context, config RootConfig) error {
 
 	// Create repositories.
 	keyRepo, err := storagefs.NewKeyRepository(storagefs.KeyRepositoryConfig{
-		PrivateKeyPath: v.PrivateKeyPath,
-		KeyFactory:     keyage.NewFactory(passphraseR, logger),
-		Logger:         logger,
+		PrivateKeysPath: privateKeysPath,
+		KeyFactory:      keyage.NewFactory(passphraseR, logger),
+		Logger:          logger,
 	})
 	if err != nil {
 		return fmt.Errorf("could not create key repository: %w", err)

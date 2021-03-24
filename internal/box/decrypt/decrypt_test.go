@@ -13,6 +13,7 @@ import (
 	"github.com/slok/agebox/internal/model"
 	"github.com/slok/agebox/internal/secret/encrypt/encryptmock"
 	"github.com/slok/agebox/internal/secret/process/processmock"
+	"github.com/slok/agebox/internal/storage"
 	"github.com/slok/agebox/internal/storage/storagemock"
 )
 
@@ -45,13 +46,13 @@ func TestDecryptBox(t *testing.T) {
 			expErr: true,
 		},
 
-		"Having an error while retrieving private key, it should fail.": {
+		"Having an error while retrieving private keys, it should fail.": {
 			req: decrypt.DecryptBoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, fmt.Errorf("something"))
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(nil, fmt.Errorf("something"))
 			},
 			expErr: true,
 		},
@@ -62,7 +63,7 @@ func TestDecryptBox(t *testing.T) {
 			},
 			mock: func(m mocks) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(&storage.PrivateKeyList{}, nil)
 
 				// Processed secret.
 				{
@@ -84,7 +85,7 @@ func TestDecryptBox(t *testing.T) {
 			mock: func(m mocks) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
 				m.msp.On("ProcessID", mock.Anything, "ignored").Once().Return("", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(&storage.PrivateKeyList{}, nil)
 
 				// Processed secret.
 				{
@@ -111,7 +112,7 @@ func TestDecryptBox(t *testing.T) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
 				m.msp.On("ProcessID", mock.Anything, "wrongsecret1").Once().Return("wrongsecret1", nil)
 				m.msp.On("ProcessID", mock.Anything, "secret2").Once().Return("secret2", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(&storage.PrivateKeyList{}, nil)
 
 				// Secret 1.
 				{
@@ -149,7 +150,7 @@ func TestDecryptBox(t *testing.T) {
 			},
 			mock: func(m mocks) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(&storage.PrivateKeyList{}, nil)
 
 				// Processed secret.
 				{
@@ -165,7 +166,7 @@ func TestDecryptBox(t *testing.T) {
 			},
 			mock: func(m mocks) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(&storage.PrivateKeyList{}, nil)
 
 				// Processed secret.
 				{
@@ -182,7 +183,7 @@ func TestDecryptBox(t *testing.T) {
 			},
 			mock: func(m mocks) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(&storage.PrivateKeyList{}, nil)
 
 				// Processed secret.
 				{

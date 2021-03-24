@@ -98,7 +98,7 @@ func (s Service) ReencryptBox(ctx context.Context, r ReencryptBoxRequest) error 
 	}
 
 	// Load keys.
-	privKey, err := s.keyRepo.GetPrivateKey(ctx)
+	privKeys, err := s.keyRepo.ListPrivateKeys(ctx)
 	if err != nil {
 		return fmt.Errorf("could not get public keys: %w", err)
 	}
@@ -112,7 +112,7 @@ func (s Service) ReencryptBox(ctx context.Context, r ReencryptBoxRequest) error 
 	for _, secretID := range secretIDs {
 		logger := s.logger.WithValues(log.Kv{"secret-id": secretID})
 
-		err := s.procesSecret(ctx, logger, privKey, pubKeys.Items, secretID)
+		err := s.procesSecret(ctx, logger, privKeys.Items, pubKeys.Items, secretID)
 		if err != nil {
 			return fmt.Errorf("could not reencrypt all the provided secret: %w", err)
 		}
@@ -124,7 +124,7 @@ func (s Service) ReencryptBox(ctx context.Context, r ReencryptBoxRequest) error 
 	return nil
 }
 
-func (s Service) procesSecret(ctx context.Context, logger log.Logger, privaKey model.PrivateKey, pubKeys []model.PublicKey, secretID string) error {
+func (s Service) procesSecret(ctx context.Context, logger log.Logger, privaKeys []model.PrivateKey, pubKeys []model.PublicKey, secretID string) error {
 	exists, err := s.secretRepo.ExistsEncryptedSecret(ctx, secretID)
 	if err != nil {
 		return fmt.Errorf("could not check if the encrypted secret exists: %w", err)
@@ -139,7 +139,7 @@ func (s Service) procesSecret(ctx context.Context, logger log.Logger, privaKey m
 			return fmt.Errorf("could not retrieve encrypted secret: %w", err)
 		}
 
-		secret, err = s.encrypter.Decrypt(ctx, *secret, privaKey)
+		secret, err = s.encrypter.Decrypt(ctx, *secret, privaKeys)
 		if err != nil {
 			return fmt.Errorf("could not decrypt secret: %w", err)
 		}

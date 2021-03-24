@@ -98,7 +98,7 @@ func (s Service) DecryptBox(ctx context.Context, r DecryptBoxRequest) error {
 	}
 
 	// Load key.
-	privKey, err := s.keyRepo.GetPrivateKey(ctx)
+	privKeys, err := s.keyRepo.ListPrivateKeys(ctx)
 	if err != nil {
 		return fmt.Errorf("could not get private key: %w", err)
 	}
@@ -109,7 +109,7 @@ func (s Service) DecryptBox(ctx context.Context, r DecryptBoxRequest) error {
 	for _, secretID := range secretIDs {
 		logger := s.logger.WithValues(log.Kv{"secret-id": secretID})
 
-		err := s.procesSecret(ctx, privKey, secretID)
+		err := s.procesSecret(ctx, privKeys.Items, secretID)
 		if err != nil {
 			// We will try our best, if error, log and continue with next secrets.
 			logger.Errorf("Secret not decrypted: %s", err)
@@ -128,13 +128,13 @@ func (s Service) DecryptBox(ctx context.Context, r DecryptBoxRequest) error {
 	return nil
 }
 
-func (s Service) procesSecret(ctx context.Context, key model.PrivateKey, secretID string) error {
+func (s Service) procesSecret(ctx context.Context, keys []model.PrivateKey, secretID string) error {
 	secret, err := s.secretRepo.GetEncryptedSecret(ctx, secretID)
 	if err != nil {
 		return fmt.Errorf("could not retrieve secret: %w", err)
 	}
 
-	secret, err = s.encrypter.Decrypt(ctx, *secret, key)
+	secret, err = s.encrypter.Decrypt(ctx, *secret, keys)
 	if err != nil {
 		return fmt.Errorf("could not decrypt secret: %w", err)
 	}

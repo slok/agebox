@@ -17,16 +17,18 @@ import (
 )
 
 type catCommand struct {
-	PrivateKeyPath string
-	SSHPassphrase  string
-	Files          []string
+	DeprecatedPrivateKeyPath string
+	PrivateKeysPath          string
+	SSHPassphrase            string
+	Files                    []string
 }
 
 // NewCatCommand returns the cat command.
 func NewCatCommand(app *kingpin.Application) Command {
 	c := &catCommand{}
 	cmd := app.Command("cat", "Decrypts any number of tracked files and prints them to stdout.")
-	cmd.Flag("private-key", "Path to private key.").Required().Short('i').StringVar(&c.PrivateKeyPath)
+	cmd.Flag("private-key", "DEPRECATED: Use --private-keys.").StringVar(&c.DeprecatedPrivateKeyPath)
+	cmd.Flag("private-keys", "Path to private key(s).").Default(defaultSSHDir).Short('i').StringVar(&c.PrivateKeysPath)
 	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode.").StringVar(&c.SSHPassphrase)
 	cmd.Arg("files", "Files to decrypt.").StringsVar(&c.Files)
 
@@ -37,6 +39,16 @@ func (c catCommand) Name() string { return "cat" }
 func (c catCommand) Run(ctx context.Context, config RootConfig) error {
 	logger := config.Logger
 
+	// Get private key and allow deprecated key flag.
+	privateKeysPath := c.PrivateKeysPath
+	if c.DeprecatedPrivateKeyPath != "" {
+		logger.Warningf("--private-key flag is deprecated, use --private-keys")
+		privateKeysPath = c.DeprecatedPrivateKeyPath
+	}
+	if privateKeysPath == "" {
+		return fmt.Errorf("private key is required")
+	}
+
 	var passphraseR io.Reader = os.Stdin
 	if c.SSHPassphrase != "" {
 		passphraseR = strings.NewReader(c.SSHPassphrase)
@@ -44,9 +56,9 @@ func (c catCommand) Run(ctx context.Context, config RootConfig) error {
 
 	// Create repositories
 	keyRepo, err := storagefs.NewKeyRepository(storagefs.KeyRepositoryConfig{
-		PrivateKeyPath: c.PrivateKeyPath,
-		KeyFactory:     keyage.NewFactory(passphraseR, logger),
-		Logger:         logger,
+		PrivateKeysPath: privateKeysPath,
+		KeyFactory:      keyage.NewFactory(passphraseR, logger),
+		Logger:          logger,
 	})
 	if err != nil {
 		return fmt.Errorf("could not create key repository: %w", err)

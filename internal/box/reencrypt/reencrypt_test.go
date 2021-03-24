@@ -52,7 +52,7 @@ func TestReencryptBox(t *testing.T) {
 			},
 			mock: func(m mocks) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, fmt.Errorf("something"))
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(nil, fmt.Errorf("something"))
 			},
 			expErr: true,
 		},
@@ -63,7 +63,7 @@ func TestReencryptBox(t *testing.T) {
 			},
 			mock: func(m mocks) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(&storage.PrivateKeyList{}, nil)
 				m.mkr.On("ListPublicKeys", mock.Anything).Once().Return(nil, fmt.Errorf("something"))
 			},
 			expErr: true,
@@ -75,7 +75,7 @@ func TestReencryptBox(t *testing.T) {
 			},
 			mock: func(m mocks) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(&storage.PrivateKeyList{}, nil)
 				m.mkr.On("ListPublicKeys", mock.Anything).Once().Return(&storage.PublicKeyList{}, nil)
 
 				// Processed secret.
@@ -103,7 +103,7 @@ func TestReencryptBox(t *testing.T) {
 			},
 			mock: func(m mocks) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(&storage.PrivateKeyList{}, nil)
 				m.mkr.On("ListPublicKeys", mock.Anything).Once().Return(&storage.PublicKeyList{}, nil)
 
 				// Processed secret.
@@ -128,7 +128,7 @@ func TestReencryptBox(t *testing.T) {
 			mock: func(m mocks) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
 				m.msp.On("ProcessID", mock.Anything, "ignored").Once().Return("", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(&storage.PrivateKeyList{}, nil)
 				m.mkr.On("ListPublicKeys", mock.Anything).Once().Return(&storage.PublicKeyList{}, nil)
 
 				// Processed secret.
@@ -158,7 +158,7 @@ func TestReencryptBox(t *testing.T) {
 				m.msp.On("ProcessID", mock.Anything, "secret1").Once().Return("secret1", nil)
 				m.msp.On("ProcessID", mock.Anything, "wrongsecret1").Once().Return("wrongsecret1", nil)
 				m.msp.On("ProcessID", mock.Anything, "secret2").Once().Return("secret2", nil)
-				m.mkr.On("GetPrivateKey", mock.Anything).Once().Return(nil, nil)
+				m.mkr.On("ListPrivateKeys", mock.Anything).Once().Return(&storage.PrivateKeyList{}, nil)
 				m.mkr.On("ListPublicKeys", mock.Anything).Once().Return(&storage.PublicKeyList{}, nil)
 
 				// Secret 1.
