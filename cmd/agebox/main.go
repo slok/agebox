@@ -94,7 +94,7 @@ func getLogger(config commands.RootConfig, stderr io.Writer) log.Logger {
 		"version": Version,
 	})
 
-	logger.Debugf("debug level is enabled") // Will log only when debug enabled.
+	logger.Debugf("Debug level is enabled") // Will log only when debug enabled.
 
 	return logger
 }

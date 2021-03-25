@@ -117,7 +117,7 @@ func NewIncludeRegexMatch(regex *regexp.Regexp, logger log.Logger) IDProcessor {
 			return secretID, nil
 		}
 
-		logger.Debugf("secret ignored by regex unmatch")
+		logger.Debugf("Secret ignored by regex unmatch")
 		return "", nil
 	})
 }
