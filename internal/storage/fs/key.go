@@ -96,7 +96,7 @@ func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyLi
 			key, err := k.keyFactory.GetPublicKey(ctx, data)
 			if err != nil {
 				// If we can't load a key, don't fail, we try our best.
-				k.logger.WithValues(log.Kv{"key": path}).Warningf("could not load public key: %s", err)
+				k.logger.WithValues(log.Kv{"key": path}).Warningf("Could not load public key: %s", err)
 				continue
 			}
 
@@ -136,7 +136,7 @@ func (k keyRepository) ListPrivateKeys(ctx context.Context) (*storage.PrivateKey
 		key, err := k.keyFactory.GetPrivateKey(ctx, data)
 		if err != nil {
 			// If we can't load a key, don't fail, we try our best.
-			k.logger.WithValues(log.Kv{"key": path}).Warningf("could not load private key: %s", err)
+			k.logger.WithValues(log.Kv{"key": path}).Warningf("Could not load private key: %s", err)
 			return nil
 		}
 
