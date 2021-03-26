@@ -7,10 +7,11 @@
 [![CI](https://github.com/slok/agebox/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/slok/agebox/actions/workflows/ci.yaml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/slok/agebox)](https://goreportcard.com/report/github.com/slok/agebox)
 [![Apache 2 licensed](https://img.shields.io/badge/license-Apache2-blue.svg)](https://raw.githubusercontent.com/slok/agebox/master/LICENSE)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/slok/agebox)](https://github.com/slok/agebox/releases/latest)
 
 Easy and simple file repository encryption tool based on [Age].
 
-Have you ever though _"this should be simple"_ while you were using tools like [Blackbox] , [Git-crypt] or [Sops]? This is what agebox is. A tool on top of [Age]'s security system that encrypts/decrypts your repository files, focused on simplicity and gitops.
+Have you ever thought _"this should be simple"_ while you were using tools like [Blackbox] , [Git-crypt] or [Sops]? This is what agebox is. A tool on top of [Age]'s security system that encrypts/decrypts your repository files, focused on simplicity and gitops.
 
 ## Features
 
@@ -136,6 +137,8 @@ Agebox supports the same asymmetric keys [Age] does:
 - RSA SSH.
 - Ed25519 SSH.
 
+**Agebox knows how to discover keys in directories (recursively).**
+
 ### Public keys
 
 The public keys are the recipients of the encrypted files. With their respective private keys, users will be able to decrypt the files.
@@ -156,9 +159,7 @@ You can have multiple public keys in a file (one per line), like [Age recipients
 
 ### Private keys
 
-Private key (**singular**) should be passed whenever a decrypt operation is made.
-
-You can configure this with `--private-key` flag or `AGEBOX_PRIVATE_KEY` env var.
+By default Agebox will try loading all the valid private keys from `HOME/.ssh`, however you can configure this with `--private-keys` flag or `AGEBOX_PRIVATE_KEYS` env var to point to specific directory with the keys (or a path to a single key).
 
 ## Alternatives
 
