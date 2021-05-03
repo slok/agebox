@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Remove the 20 public key encryption limit as Age has removed the decrypt limits.
+
 ## [v0.4.0] - 2021-03-25
 
 ### Added

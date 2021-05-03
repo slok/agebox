@@ -42,16 +42,6 @@ func (encrypter) Encrypt(ctx context.Context, secret model.Secret, keys []model.
 		ageRecipients = append(ageRecipients, aKey.AgeRecipient())
 	}
 
-	// Age has a decrypt limit of 20 recipients.
-	// We don't want the user to encrypt as if this would be ok and then the user
-	// have errors decrypting. More information:
-	// 	- https://github.com/FiloSottile/age/blob/dabc470bfe8fd14ef93dd83e769e609176af461c/age.go#L171
-	//  - https://github.com/FiloSottile/age/issues/139
-	const maxAgeRecipients = 20
-	if len(ageRecipients) > maxAgeRecipients {
-		return nil, fmt.Errorf("age has a max recipients (20) decrypt limit, avoid encrypting")
-	}
-
 	// Encrypt data.
 	var b bytes.Buffer
 	cryptedW, err := age.Encrypt(&b, ageRecipients...)
