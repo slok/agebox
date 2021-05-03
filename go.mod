@@ -3,7 +3,7 @@ module github.com/slok/agebox
 go 1.16
 
 require (
-	filippo.io/age v1.0.0-rc.1
+	filippo.io/age v1.0.0-rc.1.0.20210502224421-85763d390a45
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20210208195552-ff826a37aa15 // indirect
 	github.com/ghodss/yaml v1.0.0

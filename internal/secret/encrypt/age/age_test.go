@@ -55,20 +55,6 @@ func TestEncrypter(t *testing.T) {
 			expEncryptErr: true,
 		},
 
-		"Encrypting secrets with more than 20 recipients should fail.": {
-			publicKeys: []model.PublicKey{
-				publicKey1, publicKey1, publicKey1, publicKey1, publicKey1,
-				publicKey1, publicKey1, publicKey1, publicKey1, publicKey1,
-				publicKey1, publicKey1, publicKey1, publicKey1, publicKey1,
-				publicKey1, publicKey1, publicKey1, publicKey1, publicKey1,
-				publicKey1,
-			},
-			secret: model.Secret{
-				DecryptedData: []byte("this is a test secret"),
-			},
-			expEncryptErr: true,
-		},
-
 		"Decrypting secrets without age private key should fail.": {
 			publicKeys: []model.PublicKey{publicKey1},
 			secret: model.Secret{
