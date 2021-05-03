@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v0.5.0] - 2021-05-03
+
 ### Changed
 
 - Remove the 20 public key encryption limit as Age has removed the decrypt limits.
@@ -59,7 +61,8 @@
 - Untracking of files.
 - Tracking registry initialization.
 
-[unreleased]: https://github.com/slok/agebox/compare/v0.4.0...HEAD
+[unreleased]: https://github.com/slok/agebox/compare/v0.5.0...HEAD
+[v0.5.0]: https://github.com/slok/agebox/compare/v0.4.0...v0.5.0
 [v0.4.0]: https://github.com/slok/agebox/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/slok/agebox/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/slok/agebox/compare/v0.1.1...v0.2.0
