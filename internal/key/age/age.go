@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
+	"strings"
 
 	"filippo.io/age"
 	"filippo.io/age/agessh"
@@ -76,7 +78,7 @@ func NewFactory(passphraseReader io.Reader, logger log.Logger) key.Factory {
 		},
 		privateKeyParsers: []func(string) (age.Identity, error){
 			parseSSHIdentityFunc(passphraseReader, logger),
-			func(d string) (age.Identity, error) { return age.ParseX25519Identity(d) },
+			parseAgeIdentityFunc(),
 		},
 	}
 }
@@ -172,5 +174,16 @@ func askPasswordStdin(r io.Reader, logger log.Logger) func() ([]byte, error) {
 		}
 
 		return p, nil
+	}
+}
+
+var removeCommentRegexp = regexp.MustCompile("(?m)(^#.*$)")
+
+func parseAgeIdentityFunc() func(s string) (age.Identity, error) {
+	return func(d string) (age.Identity, error) {
+		d = removeCommentRegexp.ReplaceAllString(d, "")
+		d = strings.TrimSpace(d)
+
+		return age.ParseX25519Identity(d)
 	}
 }
