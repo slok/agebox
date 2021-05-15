@@ -147,6 +147,26 @@ kBvzR+ftEy9KmPtg==
 `,
 			expErr: false,
 		},
+
+		"X25519 keys with comments should be valid.": {
+			key: `
+# This is a comment.
+# This is another comment.
+AGE-SECRET-KEY-1J2DCTK0T408RJK2KX5QM3RLT4MFXEZYGP327CNP347PKTQ22UYUQXJ3N4X
+`,
+			expErr: false,
+		},
+		"X25519 keys with other text inside should be invalid.": {
+			key: `
+# This is a comment.
+# This is another comment.
+  a b      c
+AGE-SECRET-KEY-1J2DCTK0T408RJK2KX5QM3RLT4MFXEZYGP327CNP347PKTQ22UYUQXJ3N4X
+d      e
+           f
+`,
+			expErr: true,
+		},
 	}
 
 	for name, test := range tests {
