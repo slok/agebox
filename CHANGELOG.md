@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [v0.5.1] - 2021-05-15
+
+### Changed
+
+- Fixed bug that wouldn't allow loading `X25519` (Age) keys with comments or newlines.
+
 ## [v0.5.0] - 2021-05-03
 
 ### Changed
