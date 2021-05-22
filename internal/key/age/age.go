@@ -4,14 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
-	"regexp"
-	"strings"
 
 	"filippo.io/age"
-	"filippo.io/age/agessh"
-	"golang.org/x/crypto/ssh"
-	"golang.org/x/term"
 
 	"github.com/slok/agebox/internal/key"
 	"github.com/slok/agebox/internal/log"
@@ -52,6 +46,9 @@ func (p PrivateKey) AgeIdentity() age.Identity { return p.identity }
 
 var _ model.PrivateKey = &PrivateKey{}
 
+type publicKeyParser func(ctx context.Context, key string) (age.Recipient, error)
+type privateKeyParser func(ctx context.Context, key string) (age.Identity, error)
+
 type factory struct {
 	// These are the key parsers used to load keys, they will work in
 	// brute force mode being used as a chain, if one fails we continue
@@ -59,8 +56,8 @@ type factory struct {
 	//
 	// TODO(slok): We could optimize this as age does, checking
 	//			   the keys headers and selecting the correct one.
-	publicKeyParsers  []func(string) (age.Recipient, error)
-	privateKeyParsers []func(string) (age.Identity, error)
+	publicKeyParsers  []publicKeyParser
+	privateKeyParsers []privateKeyParser
 }
 
 // Factory is the key.Factory implementation for age supported keys.
@@ -72,13 +69,13 @@ func NewFactory(passphraseReader io.Reader, logger log.Logger) key.Factory {
 	logger = logger.WithValues(log.Kv{"svc": "key.age.Factory"})
 
 	return factory{
-		publicKeyParsers: []func(string) (age.Recipient, error){
-			agessh.ParseRecipient,
-			func(d string) (age.Recipient, error) { return age.ParseX25519Recipient(d) },
+		publicKeyParsers: []publicKeyParser{
+			parseSSHPublic(),
+			parseAgePublic(),
 		},
-		privateKeyParsers: []func(string) (age.Identity, error){
-			parseSSHIdentityFunc(passphraseReader, logger),
-			parseAgeIdentityFunc(),
+		privateKeyParsers: []privateKeyParser{
+			parseSSHPrivateFunc(passphraseReader, logger),
+			parseAgePrivateFunc(),
 		},
 	}
 }
@@ -88,7 +85,7 @@ var _ key.Factory = factory{}
 func (f factory) GetPublicKey(ctx context.Context, data []byte) (model.PublicKey, error) {
 	sdata := string(data)
 	for _, f := range f.publicKeyParsers {
-		recipient, err := f(sdata)
+		recipient, err := f(ctx, sdata)
 		// If no error, we have our public key.
 		if err == nil {
 			return PublicKey{
@@ -104,7 +101,7 @@ func (f factory) GetPublicKey(ctx context.Context, data []byte) (model.PublicKey
 func (f factory) GetPrivateKey(ctx context.Context, data []byte) (model.PrivateKey, error) {
 	sdata := string(data)
 	for _, f := range f.privateKeyParsers {
-		identity, err := f(sdata)
+		identity, err := f(ctx, sdata)
 		// If no error, we have our private key.
 		if err == nil {
 			return PrivateKey{
@@ -115,75 +112,4 @@ func (f factory) GetPrivateKey(ctx context.Context, data []byte) (model.PrivateK
 	}
 
 	return nil, fmt.Errorf("invalid private key")
-}
-
-func parseSSHIdentityFunc(passphraseR io.Reader, logger log.Logger) func(string) (age.Identity, error) {
-	return func(d string) (age.Identity, error) {
-		// Get the SSH private key.
-		secretData := []byte(d)
-		id, err := agessh.ParseIdentity(secretData)
-		if err == nil {
-			return id, nil
-		}
-
-		// If passphrase required, ask for it.
-		sshErr, ok := err.(*ssh.PassphraseMissingError)
-		if !ok {
-			return nil, err
-		}
-
-		if sshErr.PublicKey == nil {
-			return nil, fmt.Errorf("passphrase required and public key  can't be obtained from private key")
-		}
-
-		// Ask for passphrase and get identity.
-		i, err := agessh.NewEncryptedSSHIdentity(sshErr.PublicKey, secretData, askPasswordStdin(passphraseR, logger))
-		if err != nil {
-			return nil, err
-		}
-
-		return i, nil
-	}
-}
-
-func askPasswordStdin(r io.Reader, logger log.Logger) func() ([]byte, error) {
-	return func() ([]byte, error) {
-		// If not stdin just return the passphrase.
-		if r != os.Stdin {
-			return io.ReadAll(r)
-		}
-
-		// Check if is a valid terminal and try getting it.
-		fd := int(os.Stdin.Fd())
-		if !term.IsTerminal(fd) {
-			tty, err := os.Open("/dev/tty")
-			if err != nil {
-				return nil, fmt.Errorf("standard input is not available or not a terminal, and opening /dev/tty failed: %v", err)
-			}
-			defer tty.Close()
-			fd = int(tty.Fd())
-		}
-
-		// Ask for password.
-		logger.Warningf("SSH key passphrase required")
-		logger.Infof("Enter passphrase for ssh key: ")
-
-		p, err := term.ReadPassword(fd)
-		if err != nil {
-			return nil, err
-		}
-
-		return p, nil
-	}
-}
-
-var removeCommentRegexp = regexp.MustCompile("(?m)(^#.*$)")
-
-func parseAgeIdentityFunc() func(s string) (age.Identity, error) {
-	return func(d string) (age.Identity, error) {
-		d = removeCommentRegexp.ReplaceAllString(d, "")
-		d = strings.TrimSpace(d)
-
-		return age.ParseX25519Identity(d)
-	}
 }

@@ -2,11 +2,16 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Fixed bug that wouldn't allow loading `X25519` (Age) public keys with comments or newlines.
+- Allow loading `X25519` (Age) public keys in the form of `Public key: {PUBLIC_KEY}` (e.g: Using `age-keygen -o ./priv.key 2> ./pub.key`).
+
 ## [v0.5.1] - 2021-05-15
 
 ### Changed
 
-- Fixed bug that wouldn't allow loading `X25519` (Age) keys with comments or newlines.
+- Fixed bug that wouldn't allow loading `X25519` (Age) private keys with comments or newlines.
 
 ## [v0.5.0] - 2021-05-03
 
