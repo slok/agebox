@@ -39,6 +39,28 @@ func TestKeyFactoryPublicKey(t *testing.T) {
 			key:    `age1dsnalzl92c076vh54s3xwqet87de2qde60gcfrpwnm9t3ghc6s7qadhjay`,
 			expErr: false,
 		},
+
+		"X25519 keys with newlines should be valid.": {
+			key: ` age1dsnalzl92c076vh54s3xwqet87de2qde60gcfrpwnm9t3ghc6s7qadhjay
+
+`,
+			expErr: false,
+		},
+
+		"X25519 keys with default age-keygen comment should be valid.": {
+			key: `
+Public key: age1dsnalzl92c076vh54s3xwqet87de2qde60gcfrpwnm9t3ghc6s7qadhjay
+`,
+			expErr: false,
+		},
+		"X25519 keys with comments should be valid.": {
+			key: ` 
+# Public key
+age1dsnalzl92c076vh54s3xwqet87de2qde60gcfrpwnm9t3ghc6s7qadhjay
+
+`,
+			expErr: false,
+		},
 	}
 
 	for name, test := range tests {
