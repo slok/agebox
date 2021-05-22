@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v0.5.2] - 2021-05-22
+
 ### Changed
 
 - Fixed bug that wouldn't allow loading `X25519` (Age) public keys with comments or newlines.
@@ -72,7 +74,8 @@
 - Untracking of files.
 - Tracking registry initialization.
 
-[unreleased]: https://github.com/slok/agebox/compare/v0.5.1...HEAD
+[unreleased]: https://github.com/slok/agebox/compare/v0.5.2...HEAD
+[v0.5.2]: https://github.com/slok/agebox/compare/v0.5.1...v0.5.2
 [v0.5.1]: https://github.com/slok/agebox/compare/v0.5.0...v0.5.1
 [v0.5.0]: https://github.com/slok/agebox/compare/v0.4.0...v0.5.0
 [v0.4.0]: https://github.com/slok/agebox/compare/v0.3.0...v0.4.0
