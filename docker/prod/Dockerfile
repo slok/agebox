@@ -1,4 +1,4 @@
-FROM golang:1.16.6-alpine as build-stage
+FROM golang:1.16.7-alpine as build-stage
 
 RUN apk --no-cache add \
     g++ \
