@@ -11,6 +11,7 @@ import (
 
 	boxcat "github.com/slok/agebox/internal/box/cat"
 	keyage "github.com/slok/agebox/internal/key/age"
+	"github.com/slok/agebox/internal/log"
 	encryptage "github.com/slok/agebox/internal/secret/encrypt/age"
 	"github.com/slok/agebox/internal/secret/process"
 	storagefs "github.com/slok/agebox/internal/storage/fs"
@@ -37,7 +38,7 @@ func NewCatCommand(app *kingpin.Application) Command {
 
 func (c catCommand) Name() string { return "cat" }
 func (c catCommand) Run(ctx context.Context, config RootConfig) error {
-	logger := config.Logger
+	logger := allDebugLogger{Logger: config.Logger}
 
 	// Get private key and allow deprecated key flag.
 	privateKeysPath := c.PrivateKeysPath
@@ -98,4 +99,23 @@ func (c catCommand) Run(ctx context.Context, config RootConfig) error {
 	}
 
 	return nil
+}
+
+// allDebugLogger is a special logger that wraps a Logger and instead
+// of info and Warning, it prints in debug mode.
+// This way we don't lose information when hidding while using cat.
+type allDebugLogger struct {
+	log.Logger
+}
+
+func (a allDebugLogger) WithValues(kv log.Kv) log.Logger {
+	return allDebugLogger{Logger: a.Logger.WithValues(kv)}
+}
+
+func (a allDebugLogger) Infof(format string, args ...interface{}) {
+	a.Logger.Debugf(format, args...)
+}
+
+func (a allDebugLogger) Warningf(format string, args ...interface{}) {
+	a.Logger.Debugf(format, args...)
 }

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- `cat` cmd now logs info and warning messages as debug instead.
+
 ## [v0.5.2] - 2021-05-22
 
 ### Changed
