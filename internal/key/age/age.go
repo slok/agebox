@@ -64,7 +64,7 @@ type factory struct {
 // It supports:
 // - RSA
 // - Ed25519
-// - X25519
+// - X25519.
 func NewFactory(passphraseReader io.Reader, logger log.Logger) key.Factory {
 	logger = logger.WithValues(log.Kv{"svc": "key.age.Factory"})
 

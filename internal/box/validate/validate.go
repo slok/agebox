@@ -71,14 +71,14 @@ func NewService(config ServiceConfig) (*Service, error) {
 	}, nil
 }
 
-// ValidateBoxRequest is the request to validate secrets.
-type ValidateBoxRequest struct {
+// BoxRequest is the request to validate secrets.
+type BoxRequest struct {
 	SecretIDs []string
 	Decrypt   bool
 }
 
 // ValidateBox will validate secrets.
-func (s Service) ValidateBox(ctx context.Context, r ValidateBoxRequest) error {
+func (s Service) ValidateBox(ctx context.Context, r BoxRequest) error {
 	if len(r.SecretIDs) == 0 {
 		return fmt.Errorf("0 secrets provided")
 	}

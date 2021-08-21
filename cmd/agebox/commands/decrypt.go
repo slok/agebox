@@ -145,7 +145,7 @@ func (d decryptCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("could not create decrypt service: %w", err)
 	}
 
-	err = appSvc.DecryptBox(ctx, boxdecrypt.DecryptBoxRequest{
+	err = appSvc.DecryptBox(ctx, boxdecrypt.BoxRequest{
 		SecretIDs: d.Files,
 	})
 	if err != nil {

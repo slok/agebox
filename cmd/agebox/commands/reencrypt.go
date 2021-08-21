@@ -127,7 +127,7 @@ func (r reencryptCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("could not create reencrypt service: %w", err)
 	}
 
-	err = appSvc.ReencryptBox(ctx, boxreencrypt.ReencryptBoxRequest{
+	err = appSvc.ReencryptBox(ctx, boxreencrypt.BoxRequest{
 		SecretIDs: files,
 	})
 	if err != nil {

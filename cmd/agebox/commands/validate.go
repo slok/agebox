@@ -111,7 +111,7 @@ func (v validateCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("could not create validation service: %w", err)
 	}
 
-	err = appSvc.ValidateBox(ctx, boxvalidate.ValidateBoxRequest{
+	err = appSvc.ValidateBox(ctx, boxvalidate.BoxRequest{
 		Decrypt:   !v.NoDecrypt,
 		SecretIDs: files,
 	})

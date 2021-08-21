@@ -28,18 +28,18 @@ func TestCatBox(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		req    cat.CatBoxRequest
+		req    cat.BoxRequest
 		mock   func(m mocks)
 		expErr bool
 	}{
 		"If no secrets are request it should fail.": {
-			req:    cat.CatBoxRequest{},
+			req:    cat.BoxRequest{},
 			mock:   func(m mocks) {},
 			expErr: true,
 		},
 
 		"Having an error while processing a secret ID, should fail.": {
-			req: cat.CatBoxRequest{
+			req: cat.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -49,7 +49,7 @@ func TestCatBox(t *testing.T) {
 		},
 
 		"Having an error while retrieving private key, it should fail.": {
-			req: cat.CatBoxRequest{
+			req: cat.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -60,7 +60,7 @@ func TestCatBox(t *testing.T) {
 		},
 
 		"Decrypting correctly and encrypted secrets should cat the decrypted secrets.": {
-			req: cat.CatBoxRequest{
+			req: cat.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -83,7 +83,7 @@ func TestCatBox(t *testing.T) {
 		},
 
 		"Decrypting correctly and decrypted secrets should cat the secret as it is.": {
-			req: cat.CatBoxRequest{
+			req: cat.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -103,7 +103,7 @@ func TestCatBox(t *testing.T) {
 		},
 
 		"Ignoring secrets after a validation shouldn't use the ignored secrets.": {
-			req: cat.CatBoxRequest{
+			req: cat.BoxRequest{
 				SecretIDs: []string{"secret1", "ignored"},
 			},
 			mock: func(m mocks) {
@@ -127,7 +127,7 @@ func TestCatBox(t *testing.T) {
 		},
 
 		"Having an error while checking secret exists, should fail.": {
-			req: cat.CatBoxRequest{
+			req: cat.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -143,7 +143,7 @@ func TestCatBox(t *testing.T) {
 		},
 
 		"Having an error while getting encrypted secrets should fail.": {
-			req: cat.CatBoxRequest{
+			req: cat.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -160,7 +160,7 @@ func TestCatBox(t *testing.T) {
 		},
 
 		"Having an error while getting dencrypted secrets should fail.": {
-			req: cat.CatBoxRequest{
+			req: cat.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -177,7 +177,7 @@ func TestCatBox(t *testing.T) {
 		},
 
 		"Having an error while decrypting secrets should fail.": {
-			req: cat.CatBoxRequest{
+			req: cat.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -195,7 +195,7 @@ func TestCatBox(t *testing.T) {
 		},
 
 		"Having an error while printing the secret should fail.": {
-			req: cat.CatBoxRequest{
+			req: cat.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {

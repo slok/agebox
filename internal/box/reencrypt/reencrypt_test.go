@@ -26,18 +26,18 @@ func TestReencryptBox(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		req    reencrypt.ReencryptBoxRequest
+		req    reencrypt.BoxRequest
 		mock   func(m mocks)
 		expErr bool
 	}{
 		"If no secrets are requesed it should fail.": {
-			req:    reencrypt.ReencryptBoxRequest{},
+			req:    reencrypt.BoxRequest{},
 			mock:   func(m mocks) {},
 			expErr: true,
 		},
 
 		"Having an error while processing a secret ID, should fail.": {
-			req: reencrypt.ReencryptBoxRequest{
+			req: reencrypt.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -47,7 +47,7 @@ func TestReencryptBox(t *testing.T) {
 		},
 
 		"Having an error while retrieving private key, it should fail.": {
-			req: reencrypt.ReencryptBoxRequest{
+			req: reencrypt.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -58,7 +58,7 @@ func TestReencryptBox(t *testing.T) {
 		},
 
 		"Having an error while retrieving public keys, it should fail.": {
-			req: reencrypt.ReencryptBoxRequest{
+			req: reencrypt.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -70,7 +70,7 @@ func TestReencryptBox(t *testing.T) {
 		},
 
 		"Reencrypting an already encrypted secret, should decrypt and encrypt.": {
-			req: reencrypt.ReencryptBoxRequest{
+			req: reencrypt.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -98,7 +98,7 @@ func TestReencryptBox(t *testing.T) {
 		},
 
 		"Reencrypting an already decrypted secret, should only encrypt.": {
-			req: reencrypt.ReencryptBoxRequest{
+			req: reencrypt.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -122,7 +122,7 @@ func TestReencryptBox(t *testing.T) {
 		},
 
 		"Ignoring secrets after a validation shouldn't use the ignored secrets.": {
-			req: reencrypt.ReencryptBoxRequest{
+			req: reencrypt.BoxRequest{
 				SecretIDs: []string{"secret1", "ignored"},
 			},
 			mock: func(m mocks) {
@@ -147,7 +147,7 @@ func TestReencryptBox(t *testing.T) {
 		},
 
 		"Failing processing a secret should stop and fail the process.": {
-			req: reencrypt.ReencryptBoxRequest{
+			req: reencrypt.BoxRequest{
 				SecretIDs: []string{
 					"secret1",
 					"wrongsecret1",

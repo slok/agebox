@@ -78,13 +78,13 @@ func NewService(config ServiceConfig) (*Service, error) {
 	}, nil
 }
 
-// EncryptBoxRequest is the request to encrypt secrets.
-type EncryptBoxRequest struct {
+// BoxRequest is the request to encrypt secrets.
+type BoxRequest struct {
 	SecretIDs []string
 }
 
 // EncryptBox will encrypt secrets..
-func (s Service) EncryptBox(ctx context.Context, r EncryptBoxRequest) error {
+func (s Service) EncryptBox(ctx context.Context, r BoxRequest) error {
 	if len(r.SecretIDs) == 0 {
 		return fmt.Errorf("0 secrets provided")
 	}

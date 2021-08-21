@@ -91,7 +91,7 @@ func (c catCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("could not create cat service: %w", err)
 	}
 
-	err = appSvc.CatBox(ctx, boxcat.CatBoxRequest{
+	err = appSvc.CatBox(ctx, boxcat.BoxRequest{
 		SecretIDs: c.Files,
 	})
 	if err != nil {

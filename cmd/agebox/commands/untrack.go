@@ -96,7 +96,7 @@ func (u untrackCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("could not create untrack service: %w", err)
 	}
 
-	err = appSvc.UntrackBox(ctx, boxuntrack.UntrackBoxRequest{
+	err = appSvc.UntrackBox(ctx, boxuntrack.BoxRequest{
 		SecretIDs:       u.Files,
 		DeleteUntracked: u.Delete,
 	})

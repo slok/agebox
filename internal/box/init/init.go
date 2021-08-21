@@ -9,7 +9,7 @@ import (
 	"github.com/slok/agebox/internal/storage"
 )
 
-// ServiceConfig is the configuration of Service
+// ServiceConfig is the configuration of Service.
 type ServiceConfig struct {
 	TrackRepo storage.TrackRepository
 	Logger    log.Logger

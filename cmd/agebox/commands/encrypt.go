@@ -126,7 +126,7 @@ func (e encryptCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("could not create encrypt service: %w", err)
 	}
 
-	err = appSvc.EncryptBox(ctx, boxencrypt.EncryptBoxRequest{
+	err = appSvc.EncryptBox(ctx, boxencrypt.BoxRequest{
 		SecretIDs: e.Files,
 	})
 	if err != nil {

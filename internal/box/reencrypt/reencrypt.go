@@ -71,13 +71,13 @@ func NewService(config ServiceConfig) (*Service, error) {
 	}, nil
 }
 
-// ReencryptBoxRequest is the request to encrypt secrets.
-type ReencryptBoxRequest struct {
+// BoxRequest is the request to encrypt secrets.
+type BoxRequest struct {
 	SecretIDs []string
 }
 
 // ReencryptBox will reencrypt secrets.
-func (s Service) ReencryptBox(ctx context.Context, r ReencryptBoxRequest) error {
+func (s Service) ReencryptBox(ctx context.Context, r BoxRequest) error {
 	if len(r.SecretIDs) == 0 {
 		return fmt.Errorf("0 secrets provided")
 	}
