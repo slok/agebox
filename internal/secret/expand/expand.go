@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-// Expander knows how to expand multiple secretIDs
+// Expander knows how to expand multiple secretIDs.
 type Expander interface {
 	Expand(ctx context.Context, secretIDs []string) ([]string, error)
 }

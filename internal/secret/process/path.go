@@ -38,7 +38,7 @@ func NewPathSanitizer(encryptExt string) IDProcessor {
 // | !forceDecrypt    | No        | Yes       | Ignore |
 // | forceDecrypt     | No        | Yes       | Error  |
 // | !forceDecrypt    | Yes       | Yes       | Ignore |
-// | forceDecrypt     | Yes       | Yes       | Allow  |
+// | forceDecrypt     | Yes       | Yes       | Allow  |.
 func NewDecryptionPathState(forceDecrypt bool, repo storage.SecretRepository, logger log.Logger) IDProcessor {
 	return IDProcessorFunc(func(ctx context.Context, secretID string) (string, error) {
 		encOK, err := repo.ExistsEncryptedSecret(ctx, secretID)
@@ -88,7 +88,7 @@ func NewDecryptionPathState(forceDecrypt bool, repo storage.SecretRepository, lo
 // |      | No        | No        | Error  |
 // |      | Yes       | No        | Ignore |
 // |      | No        | Yes       | Allow  |
-// |      | Yes       | Yes       | Ignore |
+// |      | Yes       | Yes       | Ignore |.
 func NewEncryptionPathState(repo storage.SecretRepository, logger log.Logger) IDProcessor {
 	return IDProcessorFunc(func(ctx context.Context, secretID string) (string, error) {
 		encOK, err := repo.ExistsEncryptedSecret(ctx, secretID)
@@ -132,7 +132,7 @@ func NewEncryptionPathState(repo storage.SecretRepository, logger log.Logger) ID
 // |------|-----------|-----------|--------|
 // |      | Yes       | No        | Allow  |
 // |      | *         | Yes       | Error  |
-// |      | No        | *         | Error  |
+// |      | No        | *         | Error  |.
 func NewEncryptedValidationPathState(repo storage.SecretRepository) IDProcessor {
 	return IDProcessorFunc(func(ctx context.Context, secretID string) (string, error) {
 		encOK, err := repo.ExistsEncryptedSecret(ctx, secretID)

@@ -114,7 +114,7 @@ func TestEncrypter(t *testing.T) {
 
 			require.NoError(err)
 
-			// Test we have succesfuly encrypted and decrypted obtaining the same data.
+			// Test we have successfully encrypted and decrypted obtaining the same data.
 			assert.Equal(test.secret.DecryptedData, gotSecret.DecryptedData)
 		})
 	}

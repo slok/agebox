@@ -26,18 +26,18 @@ func TestValidateBox(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		req    validate.ValidateBoxRequest
+		req    validate.BoxRequest
 		mock   func(m mocks)
 		expErr bool
 	}{
 		"If no secrets are request it should fail.": {
-			req:    validate.ValidateBoxRequest{},
+			req:    validate.BoxRequest{},
 			mock:   func(m mocks) {},
 			expErr: true,
 		},
 
 		"Having an error while processing a secret ID, should fail.": {
-			req: validate.ValidateBoxRequest{
+			req: validate.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -47,7 +47,7 @@ func TestValidateBox(t *testing.T) {
 		},
 
 		"Having an error while retrieving private key, it should fail.": {
-			req: validate.ValidateBoxRequest{
+			req: validate.BoxRequest{
 				Decrypt:   true,
 				SecretIDs: []string{"secret1"},
 			},
@@ -59,7 +59,7 @@ func TestValidateBox(t *testing.T) {
 		},
 
 		"validating correctly secrets should validate the secrets.": {
-			req: validate.ValidateBoxRequest{
+			req: validate.BoxRequest{
 				Decrypt:   true,
 				SecretIDs: []string{"secret1"},
 			},
@@ -79,7 +79,7 @@ func TestValidateBox(t *testing.T) {
 		},
 
 		"validating correctly secrets without decryption should validate the secrets without decrypting them.": {
-			req: validate.ValidateBoxRequest{
+			req: validate.BoxRequest{
 				Decrypt:   false,
 				SecretIDs: []string{"secret1"},
 			},
@@ -89,7 +89,7 @@ func TestValidateBox(t *testing.T) {
 		},
 
 		"Ignoring secrets after a validation shouldn't use the ignored secrets.": {
-			req: validate.ValidateBoxRequest{
+			req: validate.BoxRequest{
 				Decrypt:   true,
 				SecretIDs: []string{"secret1", "ignored"},
 			},
@@ -110,7 +110,7 @@ func TestValidateBox(t *testing.T) {
 		},
 
 		"Failing processing a secret shouldnt affect others and fail.": {
-			req: validate.ValidateBoxRequest{
+			req: validate.BoxRequest{
 				Decrypt: true,
 				SecretIDs: []string{
 					"secret1",
@@ -151,7 +151,7 @@ func TestValidateBox(t *testing.T) {
 		},
 
 		"Having an error while getting encrypted secrets should fail.": {
-			req: validate.ValidateBoxRequest{
+			req: validate.BoxRequest{
 				Decrypt:   true,
 				SecretIDs: []string{"secret1"},
 			},
@@ -168,7 +168,7 @@ func TestValidateBox(t *testing.T) {
 		},
 
 		"Having an error while decrypting secrets should fail.": {
-			req: validate.ValidateBoxRequest{
+			req: validate.BoxRequest{
 				Decrypt:   true,
 				SecretIDs: []string{"secret1"},
 			},

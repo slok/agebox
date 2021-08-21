@@ -26,18 +26,18 @@ func TestDecryptBox(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		req    decrypt.DecryptBoxRequest
+		req    decrypt.BoxRequest
 		mock   func(m mocks)
 		expErr bool
 	}{
 		"If no secrets are request it should fail.": {
-			req:    decrypt.DecryptBoxRequest{},
+			req:    decrypt.BoxRequest{},
 			mock:   func(m mocks) {},
 			expErr: true,
 		},
 
 		"Having an error while processing a secret ID, should fail.": {
-			req: decrypt.DecryptBoxRequest{
+			req: decrypt.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -47,7 +47,7 @@ func TestDecryptBox(t *testing.T) {
 		},
 
 		"Having an error while retrieving private keys, it should fail.": {
-			req: decrypt.DecryptBoxRequest{
+			req: decrypt.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -58,7 +58,7 @@ func TestDecryptBox(t *testing.T) {
 		},
 
 		"Decrypting correctly secrets should encrypt the secrets.": {
-			req: decrypt.DecryptBoxRequest{
+			req: decrypt.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -79,7 +79,7 @@ func TestDecryptBox(t *testing.T) {
 		},
 
 		"Ignoring secrets after a validation shouldn't use the ignored secrets.": {
-			req: decrypt.DecryptBoxRequest{
+			req: decrypt.BoxRequest{
 				SecretIDs: []string{"secret1", "ignored"},
 			},
 			mock: func(m mocks) {
@@ -101,7 +101,7 @@ func TestDecryptBox(t *testing.T) {
 		},
 
 		"Failing processing a secret shouldnt affect others and fail.": {
-			req: decrypt.DecryptBoxRequest{
+			req: decrypt.BoxRequest{
 				SecretIDs: []string{
 					"secret1",
 					"wrongsecret1",
@@ -145,7 +145,7 @@ func TestDecryptBox(t *testing.T) {
 		},
 
 		"Having an error while getting encrypted secrets should fail.": {
-			req: decrypt.DecryptBoxRequest{
+			req: decrypt.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -161,7 +161,7 @@ func TestDecryptBox(t *testing.T) {
 		},
 
 		"Having an error while getting decrypting secrets should fail.": {
-			req: decrypt.DecryptBoxRequest{
+			req: decrypt.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -178,7 +178,7 @@ func TestDecryptBox(t *testing.T) {
 		},
 
 		"Having an error while getting saving decrypted secrets should fail.": {
-			req: decrypt.DecryptBoxRequest{
+			req: decrypt.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {

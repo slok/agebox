@@ -104,13 +104,13 @@ func NewService(config ServiceConfig) (*Service, error) {
 	}, nil
 }
 
-// CatBoxRequest is the request to cat encrypted secrets.
-type CatBoxRequest struct {
+// BoxRequest is the request to cat encrypted secrets.
+type BoxRequest struct {
 	SecretIDs []string
 }
 
 // CatBox will decrypt secrets and print them.
-func (s Service) CatBox(ctx context.Context, r CatBoxRequest) error {
+func (s Service) CatBox(ctx context.Context, r BoxRequest) error {
 	if len(r.SecretIDs) == 0 {
 		return fmt.Errorf("0 secrets provided")
 	}

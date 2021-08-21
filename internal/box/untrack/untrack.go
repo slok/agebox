@@ -62,14 +62,14 @@ func NewService(config ServiceConfig) (*Service, error) {
 	}, nil
 }
 
-// UntrackBoxRequest is the request to untrack secrets.
-type UntrackBoxRequest struct {
+// BoxRequest is the request to untrack secrets.
+type BoxRequest struct {
 	SecretIDs       []string
 	DeleteUntracked bool
 }
 
 // UntrackBox will untrack secrets.
-func (s Service) UntrackBox(ctx context.Context, r UntrackBoxRequest) error {
+func (s Service) UntrackBox(ctx context.Context, r BoxRequest) error {
 	if len(r.SecretIDs) == 0 {
 		return fmt.Errorf("0 secrets provided")
 	}

@@ -71,13 +71,13 @@ func NewService(config ServiceConfig) (*Service, error) {
 	}, nil
 }
 
-// DecryptBoxRequest is the request to decrypt secrets.
-type DecryptBoxRequest struct {
+// BoxRequest is the request to decrypt secrets.
+type BoxRequest struct {
 	SecretIDs []string
 }
 
 // DecryptBox will decrypt secrets.
-func (s Service) DecryptBox(ctx context.Context, r DecryptBoxRequest) error {
+func (s Service) DecryptBox(ctx context.Context, r BoxRequest) error {
 	if len(r.SecretIDs) == 0 {
 		return fmt.Errorf("0 secrets provided")
 	}

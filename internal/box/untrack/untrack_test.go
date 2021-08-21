@@ -23,18 +23,18 @@ func TestUntrackBox(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		req    untrack.UntrackBoxRequest
+		req    untrack.BoxRequest
 		mock   func(m mocks)
 		expErr bool
 	}{
 		"If no secrets are request it should fail.": {
-			req:    untrack.UntrackBoxRequest{},
+			req:    untrack.BoxRequest{},
 			mock:   func(m mocks) {},
 			expErr: true,
 		},
 
 		"Having an error while processing a secret ID, should fail.": {
-			req: untrack.UntrackBoxRequest{
+			req: untrack.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -44,7 +44,7 @@ func TestUntrackBox(t *testing.T) {
 		},
 
 		"Untracking a secret should remove from the tracked ones.": {
-			req: untrack.UntrackBoxRequest{
+			req: untrack.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -65,7 +65,7 @@ func TestUntrackBox(t *testing.T) {
 		},
 
 		"Having an error while saving the tracked secret rgistry should fail.": {
-			req: untrack.UntrackBoxRequest{
+			req: untrack.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -77,7 +77,7 @@ func TestUntrackBox(t *testing.T) {
 		},
 
 		"Ignoring secrets after a validation shouldn't use the ignored secrets.": {
-			req: untrack.UntrackBoxRequest{
+			req: untrack.BoxRequest{
 				SecretIDs: []string{"secret1", "ignored"},
 			},
 			mock: func(m mocks) {
@@ -100,7 +100,7 @@ func TestUntrackBox(t *testing.T) {
 		},
 
 		"Getting an error while getting the tracked secret registries, should fail.": {
-			req: untrack.UntrackBoxRequest{
+			req: untrack.BoxRequest{
 				SecretIDs: []string{"secret1"},
 			},
 			mock: func(m mocks) {
@@ -111,7 +111,7 @@ func TestUntrackBox(t *testing.T) {
 		},
 
 		"Untracking a secret with deletion should remove from the tracked ones and ensure files are removed.": {
-			req: untrack.UntrackBoxRequest{
+			req: untrack.BoxRequest{
 				SecretIDs:       []string{"secret1"},
 				DeleteUntracked: true,
 			},
@@ -139,7 +139,7 @@ func TestUntrackBox(t *testing.T) {
 		},
 
 		"Having an error while deleting decrypted secret should fail.": {
-			req: untrack.UntrackBoxRequest{
+			req: untrack.BoxRequest{
 				SecretIDs:       []string{"secret1"},
 				DeleteUntracked: true,
 			},
@@ -153,7 +153,7 @@ func TestUntrackBox(t *testing.T) {
 		},
 
 		"Having an error while deleting encrypted secret should fail.": {
-			req: untrack.UntrackBoxRequest{
+			req: untrack.BoxRequest{
 				SecretIDs:       []string{"secret1"},
 				DeleteUntracked: true,
 			},
@@ -168,7 +168,7 @@ func TestUntrackBox(t *testing.T) {
 		},
 
 		"Failing processing a secret shouldnt affect others and fail.": {
-			req: untrack.UntrackBoxRequest{
+			req: untrack.BoxRequest{
 				SecretIDs: []string{
 					"secret1",
 					"wrongsecret",

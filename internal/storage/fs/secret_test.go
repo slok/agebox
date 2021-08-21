@@ -501,7 +501,7 @@ func TestExistsDecryptedSecret(t *testing.T) {
 		expErr    bool
 		expExists bool
 	}{
-		"Check the existance of a decrypted secret that exists should return that exists.": {
+		"Check the existence of a decrypted secret that exists should return that exists.": {
 			id: "secrets/app1/secret1.yaml",
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, nil)
@@ -509,7 +509,7 @@ func TestExistsDecryptedSecret(t *testing.T) {
 			expExists: true,
 		},
 
-		"Check the existance of a decrypted secret that exists should return that exists (Sanitized path).": {
+		"Check the existence of a decrypted secret that exists should return that exists (Sanitized path).": {
 			id: "secrets/app1/secret1.yaml.agebox",
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, nil)
@@ -517,7 +517,7 @@ func TestExistsDecryptedSecret(t *testing.T) {
 			expExists: true,
 		},
 
-		"Check the existance of a decrypted secret that is missing should return that doesn't exist.": {
+		"Check the existence of a decrypted secret that is missing should return that doesn't exist.": {
 			id: "secrets/app1/secret1.yaml",
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml").Once().Return(nil, os.ErrNotExist)
@@ -569,7 +569,7 @@ func TestExistsEncryptedSecret(t *testing.T) {
 		expErr    bool
 		expExists bool
 	}{
-		"Check the existance of a encrypted secret that exists should return that exists.": {
+		"Check the existence of a encrypted secret that exists should return that exists.": {
 			id: "secrets/app1/secret1.yaml.agebox",
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, nil)
@@ -577,7 +577,7 @@ func TestExistsEncryptedSecret(t *testing.T) {
 			expExists: true,
 		},
 
-		"Check the existance of a encrypted secret that exists should return that exists (Sanitized path).": {
+		"Check the existence of a encrypted secret that exists should return that exists (Sanitized path).": {
 			id: "secrets/app1/secret1.yaml",
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, nil)
@@ -585,7 +585,7 @@ func TestExistsEncryptedSecret(t *testing.T) {
 			expExists: true,
 		},
 
-		"Check the existance of a encrypted secret that is missing should return that doesn't exist.": {
+		"Check the existence of a encrypted secret that is missing should return that doesn't exist.": {
 			id: "secrets/app1/secret1.yaml.agebox",
 			mock: func(mfm *fsmock.FileManager) {
 				mfm.On("StatFile", mock.Anything, "secrets/app1/secret1.yaml.agebox").Once().Return(nil, os.ErrNotExist)
