@@ -5,6 +5,7 @@
 ### Changed
 
 - `cat` cmd now logs info and warning messages as debug instead.
+- Update `age` to v1.0.0.
 
 ## [v0.5.2] - 2021-05-22
 
