@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v0.6.0] - 2021-09-10
+
 ### Changed
 
 - `cat` cmd now logs info and warning messages as debug instead.
@@ -79,7 +81,8 @@
 - Untracking of files.
 - Tracking registry initialization.
 
-[unreleased]: https://github.com/slok/agebox/compare/v0.5.2...HEAD
+[unreleased]: https://github.com/slok/agebox/compare/v0.6.0...HEAD
+[v0.6.0]: https://github.com/slok/agebox/compare/v0.5.2...v0.6.0
 [v0.5.2]: https://github.com/slok/agebox/compare/v0.5.1...v0.5.2
 [v0.5.1]: https://github.com/slok/agebox/compare/v0.5.0...v0.5.1
 [v0.5.0]: https://github.com/slok/agebox/compare/v0.4.0...v0.5.0
