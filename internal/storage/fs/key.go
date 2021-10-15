@@ -81,7 +81,7 @@ func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyLi
 			return nil
 		}
 		
-		if d.Type() & fs.ModeSocket != 0 {
+		if d.Type()&fs.ModeSocket != 0 {
 			return nil
 		}
 
