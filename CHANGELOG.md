@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- On public and private key discovery, now ignores the sockets so application doesn't fail while trying to read them.
+
 ## [v0.6.0] - 2021-09-10
 
 ### Changed
