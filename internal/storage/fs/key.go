@@ -80,16 +80,16 @@ func (k keyRepository) ListPublicKeys(ctx context.Context) (*storage.PublicKeyLi
 		if d.IsDir() {
 			return nil
 		}
-		
+
 		if d.Type()&fs.ModeSocket != 0 {
 			return nil
 		}
 
 		if fi, err := os.Stat(path); err == nil {
-                        if fi.Mode()&fs.ModeSocket != 0 {
-                                return nil
-                        }
-                }
+			if fi.Mode()&fs.ModeSocket != 0 {
+				return nil
+			}
+		}
 
 		// Read key file.
 		data, err := k.fileManager.ReadFile(ctx, path)
@@ -135,17 +135,17 @@ func (k keyRepository) ListPrivateKeys(ctx context.Context) (*storage.PrivateKey
 		if d.IsDir() {
 			return nil
 		}
-		
+
 		if d.Type()&fs.ModeSocket != 0 {
 			return nil
 		}
-		
+
 		if fi, err := os.Stat(path); err == nil {
-                        if fi.Mode()&fs.ModeSocket != 0 {
-                                return nil
-                        }
-                }
-		
+			if fi.Mode()&fs.ModeSocket != 0 {
+				return nil
+			}
+		}
+
 		// TODO(slok): Think if we need to ignore .pub files.
 
 		// Read key file.
