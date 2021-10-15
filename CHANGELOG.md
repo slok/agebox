@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v0.6.1] - 2021-10-15
+
 ### Fixed
 
 - On public and private key discovery, now ignores the sockets so application doesn't fail while trying to read them.
@@ -85,7 +87,8 @@
 - Untracking of files.
 - Tracking registry initialization.
 
-[unreleased]: https://github.com/slok/agebox/compare/v0.6.0...HEAD
+[unreleased]: https://github.com/slok/agebox/compare/v0.6.1...HEAD
+[v0.6.1]: https://github.com/slok/agebox/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/slok/agebox/compare/v0.5.2...v0.6.0
 [v0.5.2]: https://github.com/slok/agebox/compare/v0.5.1...v0.5.2
 [v0.5.1]: https://github.com/slok/agebox/compare/v0.5.0...v0.5.1

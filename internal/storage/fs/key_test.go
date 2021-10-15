@@ -327,7 +327,7 @@ func TestListPrivateKeys(t *testing.T) {
 				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(nil).Run(func(args mock.Arguments) {
 					fn := args.Get(2).(fs.WalkDirFunc)
 
-					// Mock 1 public key.
+					// Mock 1 private key.
 					_ = fn("test/keys/key1", testFile{
 						name: "test/keys/key1",
 						f:    &fstest.MapFile{Data: []byte("key1data")},
@@ -433,7 +433,7 @@ func TestListPrivateKeys(t *testing.T) {
 				mr.On("WalkDir", mock.Anything, "test/keys", mock.Anything).Once().Return(nil).Run(func(args mock.Arguments) {
 					fn := args.Get(2).(fs.WalkDirFunc)
 
-					// Mock 1 socket and a public key.
+					// Mock 1 socket and a private key.
 					_ = fn("test/keys/somesocket", testFile{
 						name: "test/keys/somesocket",
 						f:    &fstest.MapFile{Mode: fs.ModeSocket},
