@@ -28,7 +28,7 @@ Have you ever thought _"this should be simple"_ while you were using tools like 
 ## Get agebox
 
 - [Releases](https://github.com/slok/agebox/releases)
-- [Docker images](https://hub.docker.com/r/slok/agebox)
+- [Docker images](https://github.com/users/slok/packages/container/package/agebox)
 - `git clone git@github.com:slok/agebox.git && cd ./agebox && make build && ls -la ./bin`
 
 ## Getting started
