@@ -6,7 +6,7 @@ require (
 	filippo.io/age v1.0.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
