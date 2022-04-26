@@ -3,9 +3,6 @@ package commands
 import (
 	"context"
 	"fmt"
-	"io"
-	"os"
-	"strings"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -20,6 +17,7 @@ type validateCommand struct {
 	DeprecatedPrivateKeyPath string
 	PrivateKeysPath          string
 	SSHPassphrase            string
+	SSHPassphraseEnv         string
 	NoDecrypt                bool
 }
 
@@ -30,7 +28,8 @@ func NewValidateCommand(app *kingpin.Application) Command {
 	cmd.Alias("check")
 	cmd.Flag("private-key", "DEPRECATED: Use --private-keys.").StringVar(&c.DeprecatedPrivateKeyPath)
 	cmd.Flag("private-keys", "Path to private key(s).").Default(defaultSSHDir).Short('i').StringVar(&c.PrivateKeysPath)
-	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode.").StringVar(&c.SSHPassphrase)
+	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode (if `-` is used it will read from stdin).").StringVar(&c.SSHPassphrase)
+	cmd.Flag("passphrase-env", "Same as `passphrase` except it will get the passphrase from the specified env var").StringVar(&c.SSHPassphraseEnv)
 	cmd.Flag("no-decrypt", "Doesn't decrypt the tracked files.").BoolVar(&c.NoDecrypt)
 
 	return c
@@ -52,9 +51,10 @@ func (v validateCommand) Run(ctx context.Context, config RootConfig) error {
 		}
 	}
 
-	var passphraseR io.Reader = os.Stdin
-	if v.SSHPassphrase != "" {
-		passphraseR = strings.NewReader(v.SSHPassphrase)
+	// Handle passphrase different inputs.
+	passphraseR, err := getPassphraseReader(v.SSHPassphrase, v.SSHPassphraseEnv)
+	if err != nil {
+		return err
 	}
 
 	// Create repositories.

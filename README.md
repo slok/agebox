@@ -78,7 +78,7 @@ agebox decrypt --all --force
 Validate tracked secrets are encrypted and not decrypted (without decrypt validation).
 
 ```bash
-validate --no-decrypt
+agebox validate --no-decrypt
 ```
 
 Cat multiple encrypted files and print them to stdout.
