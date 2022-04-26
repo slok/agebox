@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- The commands requiring `--passphrase`, now can use `--passphrase-env` to let Agebox get the passphrase from the env var.
+- The commands requiring `--passphrase`, now can use `-` value to get the passphrase from stdin.
+
 ## [v0.6.1] - 2021-10-15
 
 ### Fixed

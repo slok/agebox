@@ -3,9 +3,6 @@ package commands
 import (
 	"context"
 	"fmt"
-	"io"
-	"os"
-	"strings"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -21,6 +18,7 @@ type catCommand struct {
 	DeprecatedPrivateKeyPath string
 	PrivateKeysPath          string
 	SSHPassphrase            string
+	SSHPassphraseEnv         string
 	Files                    []string
 }
 
@@ -30,7 +28,8 @@ func NewCatCommand(app *kingpin.Application) Command {
 	cmd := app.Command("cat", "Decrypts any number of tracked files and prints them to stdout.")
 	cmd.Flag("private-key", "DEPRECATED: Use --private-keys.").StringVar(&c.DeprecatedPrivateKeyPath)
 	cmd.Flag("private-keys", "Path to private key(s).").Default(defaultSSHDir).Short('i').StringVar(&c.PrivateKeysPath)
-	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode.").StringVar(&c.SSHPassphrase)
+	cmd.Flag("passphrase", "SSH private key passphrase, if required it will take this and not ask disabling interactive mode (if `-` is used it will read from stdin).").StringVar(&c.SSHPassphrase)
+	cmd.Flag("passphrase-env", "Same as `passphrase` except it will get the passphrase from the specified env var").StringVar(&c.SSHPassphraseEnv)
 	cmd.Arg("files", "Files to decrypt.").StringsVar(&c.Files)
 
 	return c
@@ -50,9 +49,10 @@ func (c catCommand) Run(ctx context.Context, config RootConfig) error {
 		return fmt.Errorf("private key is required")
 	}
 
-	var passphraseR io.Reader = os.Stdin
-	if c.SSHPassphrase != "" {
-		passphraseR = strings.NewReader(c.SSHPassphrase)
+	// Handle passphrase different inputs.
+	passphraseR, err := getPassphraseReader(c.SSHPassphrase, c.SSHPassphraseEnv)
+	if err != nil {
+		return err
 	}
 
 	// Create repositories
