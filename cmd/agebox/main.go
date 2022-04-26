@@ -103,7 +103,7 @@ func main() {
 	ctx := context.Background()
 	err := Run(ctx, os.Args, os.Stdin, os.Stdout, os.Stderr)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s", err)
+		fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		os.Exit(1)
 	}
 }
