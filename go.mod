@@ -3,7 +3,7 @@ module github.com/slok/agebox
 go 1.17
 
 require (
-	filippo.io/age v1.0.0
+	filippo.io/age v1.1.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.1
