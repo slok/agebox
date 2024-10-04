@@ -49,7 +49,7 @@ func (encrypter) Encrypt(ctx context.Context, secret model.Secret, keys []model.
 		return nil, fmt.Errorf("age could not prepare secret encrypt: %w", err)
 	}
 
-	_, err = io.WriteString(cryptedW, string(secret.DecryptedData))
+	_, err = cryptedW.Write(secret.DecryptedData)
 	if err != nil {
 		return nil, fmt.Errorf("could not to encrypt secret: %w", err)
 	}

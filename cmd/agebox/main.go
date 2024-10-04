@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/slok/agebox/cmd/agebox/commands"
 	"github.com/slok/agebox/internal/log"

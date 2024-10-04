@@ -6,22 +6,25 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
-    # Execute the checks inside the container instead the VM.
-    container: golangci/golangci-lint:v1.42.0-alpine
+    container: golangci/golangci-lint:v1.61.0-alpine
     steps:
-      - uses: actions/checkout@v3.0.2
-      - run: ./scripts/check/check.sh
+      - uses: actions/checkout@v4
+      - run: |
+          # We need this go flag because it started to error after golangci-lint is using Go 1.21.
+          # TODO(slok): Remove it on next (>1.54.1) golangci-lint upgrade to check if this problem has gone.
+          export GOFLAGS="-buildvcs=false"
+          ./scripts/check/check.sh
 
   unit-test:
     name: Unit test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.2
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.17
+          go-version-file: go.mod
       - run: make ci-test
-      - uses: codecov/codecov-action@v3.1.0
+      - uses: codecov/codecov-action@v4.5.0
         with:
           token: ${{ secrets.CODECOV_UPLOAD_TOKEN }}
           file: ./.test_coverage.txt
@@ -38,7 +41,7 @@ jobs:
     name: Release image
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v4
       - name: Build image
         run: make build-image
       - name: Docker login
@@ -56,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "VERSION=${GITHUB_REF#refs/*/}" >> ${GITHUB_ENV} # Sets VERSION env var.
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v4
       - name: Build image
         run: make build-image
       - name: Docker login
@@ -72,17 +75,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "VERSION=${GITHUB_REF#refs/*/}" >> ${GITHUB_ENV} # Sets VERSION env var.
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v4
       - name: Build binaries
         run: |
           mkdir -p ./bin
           chmod -R 0777 ./bin
           make build-all
       - name: Upload binaries
-        uses: xresloader/upload-to-github-release@v1.3.3
+        uses: xresloader/upload-to-github-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          file: 'bin/*'
+          file: "bin/*"
           tags: true
           draft: true

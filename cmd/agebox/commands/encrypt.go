@@ -6,7 +6,7 @@ import (
 	"os"
 	"regexp"
 
-	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kingpin/v2"
 
 	boxencrypt "github.com/slok/agebox/internal/box/encrypt"
 	keyage "github.com/slok/agebox/internal/key/age"
