@@ -2,10 +2,18 @@
 
 ## [Unreleased]
 
+## [v0.7.0] - 2024-10-4
+
 ### Added
 
 - The commands requiring `--passphrase`, now can use `--passphrase-env` to let Agebox get the passphrase from the env var.
 - The commands requiring `--passphrase`, now can use `-` value to get the passphrase from stdin.
+
+### Changed
+
+- Set dependencies to latest versions.
+- Update Go to v1.23
+- Update Age to v1.2.0
 
 ## [v0.6.1] - 2021-10-15
 
@@ -92,7 +100,8 @@
 - Untracking of files.
 - Tracking registry initialization.
 
-[unreleased]: https://github.com/slok/agebox/compare/v0.6.1...HEAD
+[unreleased]: https://github.com/slok/agebox/compare/v0.7.0...HEAD
+[v0.7.0]: https://github.com/slok/agebox/compare/v0.6.1...v0.7.0
 [v0.6.1]: https://github.com/slok/agebox/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/slok/agebox/compare/v0.5.2...v0.6.0
 [v0.5.2]: https://github.com/slok/agebox/compare/v0.5.1...v0.5.2
