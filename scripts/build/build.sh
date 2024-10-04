@@ -23,9 +23,8 @@ function build() {
     f_ver="-X main.Version=${VERSION:-dev}"
 
     echo "Building binary at ${final_out} (GOOS=${GOOS:-}, GOARCH=${GOARCH:-}, GOARM=${GOARM:-}, VERSION=${VERSION:-})"
-    CGO_ENABLED=0 go build -o ${final_out} --ldflags "${ldf_cmp} ${f_ver}"  ${src}
+    CGO_ENABLED=0 go build -o ${final_out} --ldflags "${ldf_cmp} ${f_ver}" -buildvcs=false ${src}
 }
-
 
 if [ $ostype == 'Linux' ]; then
     build "-linux-amd64" "linux" "amd64"
