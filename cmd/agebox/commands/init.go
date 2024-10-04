@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kingpin/v2"
 
 	boxinit "github.com/slok/agebox/internal/box/init"
 	storagefs "github.com/slok/agebox/internal/storage/fs"
