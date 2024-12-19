@@ -3,7 +3,7 @@ module github.com/slok/agebox
 go 1.23
 
 require (
-	filippo.io/age v1.2.0
+	filippo.io/age v1.2.1
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/sirupsen/logrus v1.9.3
