@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v0.8.0] - 2024-12-30
+
 ### Added
 
 - Follow 1st level symlinks when discovery paths like private keys directories (adding symlink follow at all levels adds too many edge cases).
@@ -116,7 +118,8 @@
 - Untracking of files.
 - Tracking registry initialization.
 
-[unreleased]: https://github.com/slok/agebox/compare/v0.7.2...HEAD
+[unreleased]: https://github.com/slok/agebox/compare/v0.8.0...HEAD
+[v0.8.0]: https://github.com/slok/agebox/compare/v0.7.2...v0.8.0
 [v0.7.2]: https://github.com/slok/agebox/compare/v0.7.1...v0.7.2
 [v0.7.1]: https://github.com/slok/agebox/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/slok/agebox/compare/v0.6.1...v0.7.0
