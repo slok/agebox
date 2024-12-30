@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Follow 1st level symlinks when discovery paths like private keys directories (adding symlink follow at all levels adds too many edge cases).
+
 ## [v0.7.2] - 2024-12-19
 
 ### Changed
