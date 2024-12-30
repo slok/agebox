@@ -36,6 +36,14 @@ func (fileManager) StatFile(_ context.Context, path string) (os.FileInfo, error)
 	return os.Stat(path)
 }
 func (fileManager) WalkDir(_ context.Context, root string, fn fs.WalkDirFunc) error {
+	// Symlinks walkdirs have lots of edge cases so as a middle ground between reliability, simplicity and practicality
+	// we will only support first level symlinks (as ~/.ssh being a symlink can be a common use case).
+	// More info here: https://github.com/golang/go/issues/49580
+	evalRoot, err := filepath.EvalSymlinks(root)
+	if err == nil {
+		root = evalRoot
+	}
+
 	return filepath.WalkDir(root, fn)
 }
 
